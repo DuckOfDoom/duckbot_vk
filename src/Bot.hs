@@ -2,18 +2,13 @@ module Bot
   ( startBot
   ) where
 
-import           Bot.Types            (Bot, config)
-import           Control.Lens         ((^.))
-import           Control.Monad.Reader (ask)
+import           Bot.Config    (Config)
+import           Bot.Server    (runServer)
+import           Bot.Types     (config)
+import           Bot.Types     (Env (..))
 import           BotPrelude
-import           Utils.Logging        (logInfo)
-import           Control.Monad.Reader
-import           Data.Text            as T
-
-import           Bot.Config           (Config)
-import           Bot.Types            (Env (..))
-
-import           Data.Aeson           (decodeFileStrict)
+import           Data.Aeson    (decodeFileStrict)
+import           Utils.Logging (logInfo)
 
 startBot :: IO ()
 startBot = do
@@ -21,21 +16,22 @@ startBot = do
   runReaderT start env
     where
      start = do
-      logInfo "Starting..."
       e <- ask
-      logInfo $ showT $ e ^. config
+      logInfo $ "Config:\n " <> show (e ^. config)
+      runServer
 
 initEnv :: IO Env
 initEnv = do
   config' <- readConfig
   pure $ Env
    { _config = config'
-   , _logger = putStrLn . T.unpack
+   , _logger = putStrLn
    }
+   where
+    readConfig :: IO Config
+    readConfig = do
+      c <- decodeFileStrict "config.json"
+      case c of
+        Nothing   -> die $ "Can't decode 'config.json'"
+        Just conf -> pure conf
 
-readConfig :: IO Config
-readConfig = do
-  c <- decodeFileStrict "config.json"
-  case c of
-    Nothing   -> die $ "Can't find config file config.json"
-    Just conf -> pure conf

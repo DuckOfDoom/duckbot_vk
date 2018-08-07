@@ -1,13 +1,14 @@
+{-# LANGUAGE RankNTypes #-}
+
 module Utils.Logging
- ( logInfo
- )where
+  ( logInfo
+  , logError
+  ) where
 
 import           Bot.Types            (Env, logger)
+import           BotPrelude           hiding (log)
 import           Control.Lens         ((^.))
 import           Control.Monad.Reader (MonadIO, MonadReader, ask, liftIO)
-import           Data.Monoid          ((<>))
-import           Data.Text
-import           BotPrelude
 
 class HasLog a where
   getLog :: a -> (Text -> IO ())
@@ -15,9 +16,28 @@ class HasLog a where
 instance HasLog Env where
   getLog e = e ^. logger
 
-logInfo :: (MonadReader env m, HasLog env, MonadIO m)
+type LogFunc env m = (MonadReader env m, HasLog env, MonadIO m)
              => Text
              -> m ()
-logInfo msg = do
+
+logInfo :: LogFunc env m
+logInfo msg = log "INFO:" msg
+
+logError :: LogFunc env m
+logError msg = log "ERROR:" msg
+
+log :: (MonadReader env m, HasLog env, MonadIO m)
+             => Text -- prefix
+             -> Text -- message
+             -> m ()
+log prefix msg = do
   env <- ask
-  liftIO $ getLog env $ ("INFO:" <> msg)
+  -- TODO: Add time to logs?
+  --t <- fmap formatTime getCurrentTime
+  liftIO $ getLog env $ mconcat $ intersperse " " $
+    [ prefix
+    , msg
+    ]
+--  where 
+--    formatTime :: UTCTime -> Text
+--    formatTime = showT 

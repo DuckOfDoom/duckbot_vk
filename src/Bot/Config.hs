@@ -4,14 +4,17 @@
 module Bot.Config
   ( Config
   , token
+  , host
+  , port
   )
 where
 
-import           Data.Text (Text)
 import           BotPrelude
 
 data Config = Config
   { _token :: Text
+  , _host  :: Text
+  , _port  :: Int
   } deriving (Show, Generic)
 
 makeLenses ''Config
@@ -19,3 +22,5 @@ makeLenses ''Config
 instance FromJSON Config where
   parseJSON = withObject "Config" $ \v -> Config
      <$> v .: "token"
+     <*> v .: "host"
+     <*> v .: "port"

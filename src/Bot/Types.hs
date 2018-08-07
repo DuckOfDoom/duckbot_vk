@@ -1,6 +1,4 @@
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE TemplateHaskell      #-}
-{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Bot.Types
   ( Bot
@@ -10,10 +8,10 @@ module Bot.Types
   ) where
 
 import           Bot.Config
+import           BotPrelude
 import           Control.Lens         (makeLenses)
 import           Control.Monad.Reader
 import           Data.Text            (Text)
-import           BotPrelude
 
 type Bot = ReaderT Env IO
 
