@@ -25,7 +25,7 @@ tryGetWith options url = do
   response <- liftIO $ try (getWith options (T.unpack url)) :: (MonadWreq env m) => m (Either SomeException (W.Response LBS.ByteString))
   case response of
        Left ex -> do
-         logError $ [text|Caught exception when trying to GET ${url}:\n${showT ex}|]
+         logError [text|Caught exception when trying to GET ${url}:\n${showT ex}|]
          pure $ Left (T.pack $ show ex)
        Right r -> pure $ Right r
 
@@ -34,7 +34,7 @@ tryPostWith options url postable = do
   response <- liftIO $ try (postWith options (T.unpack url) postable) :: (MonadWreq env m) => m (Either SomeException (W.Response LBS.ByteString))
   case response of
        Left ex -> do
-         logError $ [text|Caught exception when trying to POST ${url}:\n${showT ex}|]
+         logError [text|Caught exception when trying to POST ${url}:\n${showT ex}|]
          pure $ Left (T.pack $ show ex)
        Right r -> pure $ Right r
 

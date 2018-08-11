@@ -9,8 +9,7 @@ import           BotPrelude
 import           NeatInterpolation (text)
 
 longPollingUrl :: Text
-longPollingUrl = do
-  compose "messages.getLongPollServer"
+longPollingUrl = compose "messages.getLongPollServer"
 
 type MethodName = Text
 

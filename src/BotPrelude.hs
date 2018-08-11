@@ -31,4 +31,4 @@ showT :: Show a => a -> Text
 showT = T.pack . show
 
 print :: Text -> IO ()
-print s = putStrLn s
+print = putStrLn

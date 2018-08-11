@@ -35,5 +35,5 @@ initEnv = do
     readConfig = do
       c <- decodeFileStrict "config.json"
       case c of
-        Nothing   -> die $ "Can't decode 'config.json'"
+        Nothing   -> die "Can't decode 'config.json'"
         Just conf -> pure conf

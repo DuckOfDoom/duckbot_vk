@@ -33,7 +33,7 @@ mkApp env request respond =
   respond $ case path of
     "/" -> index
     "/confirmation" -> confirm $ env ^. (config . confirmationString)
-    _   -> response404 $ path
+    _   -> response404 path
 
 index :: Response
 index = responseLBS status200 [] "This is index"
@@ -44,4 +44,4 @@ confirm = \case
   Nothing -> responseLBS status200 [] "Error. No confirmation value set!"
 
 response404 :: ByteString -> Response
-response404 = (responseLBS status404 []) . LBS.fromStrict
+response404 = responseLBS status404 [] . LBS.fromStrict

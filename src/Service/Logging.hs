@@ -22,10 +22,10 @@ type LogFunc env m = (MonadReader env m, HasLog env, MonadIO m)
              -> m ()
 
 logInfo :: LogFunc env m
-logInfo msg = log "INFO:" msg
+logInfo = log "INFO:" 
 
 logError :: LogFunc env m
-logError msg = log "ERROR:" msg
+logError = log "ERROR:" 
 
 log :: (MonadReader env m, HasLog env, MonadIO m)
              => Text -- prefix
@@ -35,7 +35,7 @@ log prefix msg = do
   env <- ask
   -- TODO: Add time to logs?
   --t <- fmap formatTime getCurrentTime
-  liftIO $ getLog env $ mconcat $ intersperse " " $
+  liftIO $ getLog env $ mconcat $ intersperse " "
     [ prefix
     , msg
     ]
