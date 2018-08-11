@@ -3,6 +3,7 @@
 module Service.Logging
   ( logInfo
   , logError
+  , HasLog
   ) where
 
 import           Bot.Types            (Env, logger)
@@ -38,6 +39,6 @@ log prefix msg = do
     [ prefix
     , msg
     ]
---  where 
+--  where
 --    formatTime :: UTCTime -> Text
---    formatTime = showT 
+--    formatTime = showT
