@@ -1,22 +1,22 @@
 {-# LANGUAGE QuasiQuotes #-}
 
-module Service.UrlComposer 
+module Service.UrlComposer
   (
 
   ) where
 
-import NeatInterpolation (text)
-import BotPrelude
-  
+import           BotPrelude
+import           NeatInterpolation (text)
+
 longPollingUrl :: Text
 longPollingUrl = do
   compose "messages.getLongPollServer"
-  
+
 type MethodName = Text
 
 compose :: MethodName -> Text
-compose method = 
+compose method =
 -- Parameters are added via wreq
 -- [text|https://api.vk.com/method/${method}?${parameters}&access_token=${token}&v=${version}|]
   [text|https://api.vk.com/method/${method}|]
-  
+

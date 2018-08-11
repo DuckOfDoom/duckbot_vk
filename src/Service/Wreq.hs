@@ -1,5 +1,5 @@
-{-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE MultiParamTypeClasses #-} 
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE QuasiQuotes           #-}
 
 module Service.Wreq
   ( tryGetWith
@@ -18,7 +18,7 @@ import           Service.Logging      (HasLog, logError)
 
 import           NeatInterpolation    (text)
 
-class (MonadIO m, HasLog env, MonadReader env m) => MonadWreq env m 
+class (MonadIO m, HasLog env, MonadReader env m) => MonadWreq env m
 
 tryGetWith :: (MonadWreq env m) => Options -> Text -> m (Either Text (W.Response LBS.ByteString))
 tryGetWith options url = do
@@ -37,4 +37,4 @@ tryPostWith options url postable = do
          logError $ [text|Caught exception when trying to POST ${url}:\n${showT ex}|]
          pure $ Left (T.pack $ show ex)
        Right r -> pure $ Right r
-  
+

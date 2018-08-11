@@ -2,29 +2,27 @@ module Bot
   ( startBot
   ) where
 
-import           Bot.Config         (Config)
-import           Bot.LongPolling    (startLongPolling)
-import           Bot.Server         (runServer)
-import           Bot.Types          (config,Bot)
-import           Bot.Types          (Env (..))
+import           Bot.Config      (Config)
+import           Bot.LongPolling (startLongPolling)
+import           Bot.Server      (runServer)
+import           Bot.Types       (Env (..))
 import           BotPrelude
-import           Control.Concurrent (forkIO)
-import           Data.Aeson         (decodeFileStrict)
-import           Service.Logging    (logInfo)
+import           Data.Aeson      (decodeFileStrict)
 
 startBot :: IO ()
 startBot = do
   env <- initEnv
-  runReaderT start env
-    where
-     start :: ReaderT Env IO ()
-     start = do
-      e <- ask
-      logInfo $ "Config:\n " <> show (e ^. config)
-      startLongPolling
-      runServer
-      pure ()
-      
+  let
+    startInNewThread f = forkIO $ runReaderT f env
+    loop = threadDelay 1000 >> loop
+
+  mapM_ startInNewThread
+    [ runServer
+    , startLongPolling
+    ]
+
+  loop
+
 initEnv :: IO Env
 initEnv = do
   config' <- readConfig

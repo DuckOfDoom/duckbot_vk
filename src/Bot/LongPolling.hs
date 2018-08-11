@@ -1,18 +1,13 @@
 module Bot.LongPolling 
-  (startLongPolling
+  ( startLongPolling
   ) where
   
 import BotPrelude 
-import Service.Wreq
 import Bot.Types (Bot) 
+
+import Service.Logging (logInfo)
 
 startLongPolling :: Bot ()
 startLongPolling = do
-  _ <- lift $ forkIO $ poll'
+  logInfo "Starting long polling..."
   return ()
-  
-poll' :: IO () 
-poll' = do 
-  print "hey"
-  threadDelay 1000
-  poll'

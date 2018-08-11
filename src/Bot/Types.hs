@@ -9,8 +9,8 @@ module Bot.Types
 
 import           Bot.Config
 import           BotPrelude
-import           Control.Lens         (makeLenses)
-import           Data.Text            (Text)
+import           Control.Lens (makeLenses)
+import           Data.Text    (Text)
 
 type Bot = ReaderT Env IO
 

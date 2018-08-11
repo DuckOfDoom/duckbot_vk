@@ -10,7 +10,7 @@ import           Control.Lens as RE (makeLenses, makePrisms, (%~), (.~), (?~),
 import           Data.Aeson   as RE (FromJSON, ToJSON, object, parseJSON,
                                      toJSON, withObject, (.:), (.:?), (.=))
 import           Data.Time
-import           Protolude
+import           Protolude hiding (print)
 
 import qualified Data.Text    as T
 
@@ -30,3 +30,5 @@ getCurrentTime = liftIO Data.Time.getCurrentTime
 showT :: Show a => a -> Text
 showT = T.pack . show
 
+print :: Text -> IO ()
+print s = putStrLn s
