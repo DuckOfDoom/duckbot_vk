@@ -3,24 +3,27 @@
 
 module Bot.Config
   ( Config
-  , token
-  , host
+  , accessToken
+  , apiVersion
   , port
+  , confirmationString
   )
 where
 
 import           BotPrelude
 
 data Config = Config
-  { _token :: Text
-  , _host  :: Text
-  , _port  :: Int
+  { _accessToken        :: Text
+  , _apiVersion         :: Double
+  , _port               :: Int
+  , _confirmationString :: Maybe Text
   } deriving (Show, Generic)
 
 makeLenses ''Config
 
 instance FromJSON Config where
   parseJSON = withObject "Config" $ \v -> Config
-     <$> v .: "token"
-     <*> v .: "host"
-     <*> v .: "port"
+     <$> v .:  "access_token"
+     <*> v .:  "api_version"
+     <*> v .:  "port"
+     <*> v .:? "confirmation"

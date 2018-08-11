@@ -1,6 +1,6 @@
 {-# LANGUAGE RankNTypes #-}
 
-module Utils.Logging
+module Service.Logging
   ( logInfo
   , logError
   ) where

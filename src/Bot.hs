@@ -8,7 +8,7 @@ import           Bot.Types     (config)
 import           Bot.Types     (Env (..))
 import           BotPrelude
 import           Data.Aeson    (decodeFileStrict)
-import           Utils.Logging (logInfo)
+import           Service.Logging (logInfo)
 
 startBot :: IO ()
 startBot = do
