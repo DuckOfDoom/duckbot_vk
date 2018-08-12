@@ -1,15 +1,14 @@
 {-# LANGUAGE QuasiQuotes #-}
 
 module Service.UrlComposer
-  (
-
+  ( getLongPoll
   ) where
 
 import           BotPrelude
 import           NeatInterpolation (text)
 
-longPollingUrl :: Text
-longPollingUrl = compose "messages.getLongPollServer"
+getLongPoll :: Text
+getLongPoll = compose "messages.getLongPollServer"
 
 type MethodName = Text
 
