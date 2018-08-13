@@ -27,3 +27,4 @@ duckbot.cabal
 *.iml
 
 config.json
+hlint.html
