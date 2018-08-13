@@ -17,6 +17,7 @@ class HasLog a where
 instance HasLog Env where
   getLog e = e ^. logger
 
+-- TODO: Make func work with (Show a)? 
 type LogFunc env m = (MonadReader env m, HasLog env, MonadIO m)
              => Text
              -> m ()

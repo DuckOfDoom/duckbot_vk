@@ -1,11 +1,12 @@
-module Bot.LongPolling 
+module Bot.LongPolling
   ( startLongPolling
   ) where
-  
-import BotPrelude 
-import Bot.Types (Bot) 
 
-import Service.Logging (logInfo)
+import           API.Requests    (getLongPollingServer)
+import           Bot.Types       (Bot)
+import           BotPrelude
+
+import           Service.Logging (logInfo)
 
 type ServerAddress = Text
 type SecretKey = Text
@@ -14,5 +15,6 @@ type Timestamp = Text
 startLongPolling :: Bot ()
 startLongPolling = do
   logInfo "Starting long polling..."
+  res <- getLongPollingServer
   return ()
 

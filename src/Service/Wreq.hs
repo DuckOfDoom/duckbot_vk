@@ -1,21 +1,24 @@
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE QuasiQuotes           #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE QuasiQuotes       #-}
 
 module Service.Wreq
   ( getWith
   , postWith
   ) where
 
-import           Bot.Types                 (Env)
+import           Bot.Config                (accessToken, apiVersion)
+import           Bot.Types                 (Bot, Env, config)
 import           BotPrelude
 import           Control.Exception         (SomeException, try)
 import           Data.ByteString.Lazy      as LBS (ByteString)
 import qualified Data.Text                 as T (unpack)
-import           Network.Wreq              (Options, defaults)
+import           Network.Wreq              (Options, defaults, param,
+                                            responseBody)
 import qualified Network.Wreq              as Wreq (Response, getWith, postWith)
 import           Network.Wreq.Types        (Postable)
 
-import           Service.Logging           (HasLog, logError)
+import           Service.Logging           (logError)
 
 import           Control.Monad.Trans.Maybe (MaybeT, runMaybeT)
 import           NeatInterpolation         (text)
@@ -24,25 +27,28 @@ class HasWreqOptions a where
   getOptions :: a -> Options
 
 instance HasWreqOptions Env where
-  getOptions _ = defaults -- TODO: Take options from env for real
+  getOptions e = defaults
+    & param "access_token" .~ [e ^. (config . accessToken)]
+    & param "v"            .~ [showT $ e ^. (config . apiVersion)]
 
-class (MonadIO m, HasLog env, HasWreqOptions env, MonadReader env m) => MonadWreq env m
+class (MonadIO m, MonadReader Env m) => MonadWreq m
+instance MonadWreq Bot
 
-getWith :: (MonadWreq env m) => (Options -> Options) -> Text -> m (Maybe (Wreq.Response LBS.ByteString))
-getWith patch url = do
+getWith :: (MonadWreq m) => Text -> (Options -> Options) -> m (Maybe LBS.ByteString)
+getWith url patch = do
   opts <- patch <$> getOptions <$> ask
   runMaybeT $ handleException ("GET " <> url) (Wreq.getWith opts (T.unpack url))
 
-postWith :: (MonadWreq env m, Postable a) => (Options -> Options) -> Text -> a -> m (Maybe (Wreq.Response LBS.ByteString))
-postWith patch url postable = do
+postWith :: (MonadWreq m, Postable a) => Text -> (Options -> Options) -> a -> m (Maybe LBS.ByteString)
+postWith url patch postable = do
  opts <- patch <$> getOptions <$> ask
  runMaybeT $ handleException ("POST " <> url) (Wreq.postWith opts (T.unpack url) postable)
 
 handleException
- :: (MonadWreq env m)
+ :: (MonadWreq m)
  => Text
  -> IO (Wreq.Response LBS.ByteString)
- -> MaybeT m (Wreq.Response LBS.ByteString)
+ -> MaybeT m LBS.ByteString
 handleException source action = do
   result <- liftIO $ (try' $ action)
   case result of
@@ -50,7 +56,7 @@ handleException source action = do
       let exMessage = showT ex
       logError [text|Caught exception when trying to ${source}:\n${exMessage}|]
       mzero
-    Right r -> pure $ r
+    Right r -> pure $ (r ^. responseBody)
     where
       try' :: IO (a) -> IO (Either SomeException a)
       try' = try
