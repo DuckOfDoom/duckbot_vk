@@ -4,8 +4,8 @@ module Service.UrlComposer
   ( getLongPollServer
   ) where
 
-import           BotPrelude
-import           NeatInterpolation (text)
+import BotPrelude
+import NeatInterpolation (text)
 
 getLongPollServer :: Text
 getLongPollServer = compose "messages.getLongPollServer"

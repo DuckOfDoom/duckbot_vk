@@ -6,10 +6,10 @@ module API.Types
   ( Response(..)
   ) where
 
-import           BotPrelude
-import           Data.Aeson          (ToJSON, Value (..))
-import           Data.Aeson.Types    (typeMismatch)
-import           Data.HashMap.Strict as HM (toList)
+import BotPrelude
+import Data.Aeson          (ToJSON, Value(..))
+import Data.Aeson.Types    (typeMismatch)
+import Data.HashMap.Strict as HM (toList)
 
 data Response
  = None
@@ -27,9 +27,9 @@ data Response
 makeLenses ''Response
 
 instance FromJSON Response where
-  parseJSON (Object o) = do
+  parseJSON (Object o) =
     case head $ HM.toList o of
-      Just ("error", (Object v)) -> Error
+      Just ("error", Object v) -> Error
         <$> v .: "error_code"
         <*> v .: "error_msg"
 --        <*> v .: "request_params"

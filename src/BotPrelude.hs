@@ -23,7 +23,6 @@ import qualified Data.Text    as T
 --import System.Random as RE
 --  (randomIO, randomRIO)
 
-
 getCurrentTime :: MonadIO m => m UTCTime
 getCurrentTime = liftIO Data.Time.getCurrentTime
 

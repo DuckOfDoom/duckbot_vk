@@ -10,7 +10,7 @@ module Bot.Config
   , confirmationString
   ) where
 
-import           BotPrelude
+import BotPrelude
 
 data Config = Config
   { _accessToken        :: Text

@@ -1,30 +1,30 @@
-{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE QuasiQuotes     #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module API.Requests
   ( getLongPollingServer
   ) where
 
-import           BotPrelude
+import BotPrelude
 
-import           API.Types                (Response(..))
-import           Bot.Config               (longPollVersion)
-import           Bot.Types                (Bot, config)
-import           Data.Aeson               (decode)
-import           Data.Aeson.Encode.Pretty (encodePretty)
-import           Data.ByteString.Lazy     as LBS
-import           Data.Text.Encoding       as T
-import           Network.Wreq             (param)
-import           Service.Logging          (logError, logInfo)
-import           Service.UrlComposer      as Url (getLongPollServer)
-import           Service.Wreq             (getWith)
+import API.Types                (Response(..))
+import Bot.Config               (longPollVersion)
+import Bot.Types                (Bot, config)
+import Data.Aeson               (decode)
+import Data.Aeson.Encode.Pretty (encodePretty)
+import Data.ByteString.Lazy     as LBS
+import Data.Text.Encoding       as T
+import Network.Wreq             (param)
+import Service.Logging          (logError, logInfo)
+import Service.UrlComposer      as Url (getLongPollServer)
+import Service.Wreq             (getWith)
 
-import           NeatInterpolation
+import NeatInterpolation
 
 getLongPollingServer :: Bot (Maybe (Text, Text, Text))
 getLongPollingServer = do
   lp_version <- showT . (^. (config . longPollVersion)) <$> ask
-  settings <- getWith Url.getLongPollServer (patch lp_version) >>= maybe (pure $ Nothing) parseSettings
+  settings <- getWith Url.getLongPollServer (patch lp_version) >>= maybe (pure Nothing) parseSettings
   logInfo $ "Got Result:" <> showT settings
   pure Nothing
     where
@@ -35,17 +35,17 @@ getLongPollingServer = do
 
 parse :: (FromJSON a) => LBS.ByteString -> Bot (Maybe a)
 parse bs =
-  case (decode bs) :: Maybe Response of
+  case decode bs :: Maybe Response of
     Nothing -> do
       let source = T.decodeUtf8 $ LBS.toStrict bs
-      logError $ [text|Failed to parse json:
+      logError [text|Failed to parse json:
       ${source}|]
-      pure $ Nothing
-    Just (err@Error{..}) -> do
+      pure Nothing
+    Just err@Error{..} -> do
       let source = T.decodeUtf8 $ LBS.toStrict $ encodePretty err
-      logError $ [text|Got error:
+      logError [text|Got error:
       ${source}|]
-      pure $ Nothing
+      pure Nothing
 
 --    decodeResult :: (FromJSON a) => LBS.ByteString -> Bot (Maybe a)
 --    decodeResult json = case (decode json) :: FromJSON a => Maybe a of

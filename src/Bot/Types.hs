@@ -7,10 +7,10 @@ module Bot.Types
   , logger
   ) where
 
-import           Bot.Config
-import           BotPrelude
-import           Control.Lens (makeLenses)
-import           Data.Text    (Text)
+import Bot.Config
+import BotPrelude
+import Control.Lens (makeLenses)
+import Data.Text    (Text)
 
 type Bot = ReaderT Env IO
 

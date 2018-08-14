@@ -6,10 +6,10 @@ module Service.Logging
   , HasLog
   ) where
 
-import           Bot.Types            (Env, logger)
-import           BotPrelude           hiding (log)
-import           Control.Lens         ((^.))
-import           Control.Monad.Reader (MonadIO, MonadReader, ask, liftIO)
+import Bot.Types            (Env, logger)
+import BotPrelude           hiding (log)
+import Control.Lens         ((^.))
+import Control.Monad.Reader (MonadIO, MonadReader, ask, liftIO)
 
 class HasLog a where
   getLog :: a -> (Text -> IO ())
@@ -17,16 +17,16 @@ class HasLog a where
 instance HasLog Env where
   getLog e = e ^. logger
 
--- TODO: Make func work with (Show a)? 
+-- TODO: Make func work with (Show a)?
 type LogFunc env m = (MonadReader env m, HasLog env, MonadIO m)
              => Text
              -> m ()
 
 logInfo :: LogFunc env m
-logInfo = log "INFO:" 
+logInfo = log "INFO:"
 
 logError :: LogFunc env m
-logError = log "ERROR:" 
+logError = log "ERROR:"
 
 log :: (MonadReader env m, HasLog env, MonadIO m)
              => Text -- prefix

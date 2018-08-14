@@ -2,12 +2,12 @@ module Bot
   ( startBot
   ) where
 
-import           Bot.Config      (Config)
-import           Bot.LongPolling (startLongPolling)
-import           Bot.Server      (runServer)
-import           Bot.Types       (Env (..))
-import           BotPrelude
-import           Data.Aeson      (decodeFileStrict)
+import Bot.Config      (Config)
+import Bot.LongPolling (startLongPolling)
+import Bot.Server      (runServer)
+import Bot.Types       (Env(..))
+import BotPrelude
+import Data.Aeson      (decodeFileStrict)
 
 startBot :: IO ()
 startBot = do
