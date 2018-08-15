@@ -1,4 +1,6 @@
 import BotPrelude
 
+import qualified JSONTests
+
 main :: IO ()
-main = putStrLn ("Test suite not yet implemented" :: Text)
+main = JSONTests.run

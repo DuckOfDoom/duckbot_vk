@@ -7,7 +7,7 @@ module API.Types
   ) where
 
 import BotPrelude
-import Data.Aeson          (ToJSON, Value(..))
+
 import Data.Aeson.Types    (typeMismatch)
 import Data.HashMap.Strict as HM (toList)
 
@@ -22,7 +22,7 @@ data Response
   { key    :: Text
   , server :: Text
   , ts     :: Text
-  } deriving (Show, Generic)
+  } deriving (Show, Eq, Generic)
 
 makeLenses ''Response
 

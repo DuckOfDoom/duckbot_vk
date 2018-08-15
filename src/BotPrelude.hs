@@ -4,15 +4,14 @@ module BotPrelude
   , module BotPrelude
   ) where
 
-import           Control.Lens as RE (makeLenses, makePrisms, (%~), (.~), (?~),
-                                     (^.), (^..), (^?), _1, _2, _3, _4, _Just,
-                                     _Nothing)
-import           Data.Aeson   as RE (FromJSON, ToJSON, object, parseJSON,
-                                     toJSON, withObject, (.:), (.:?), (.=))
-import           Data.Time
-import           Protolude hiding (print)
+import Control.Lens as RE (makeLenses, makePrisms, (%~), (.~), (?~), (^.),
+                           (^..), (^?), _1, _2, _3, _4, _Just, _Nothing)
+import Data.Aeson   as RE (FromJSON, ToJSON, Value(..), object, parseJSON,
+                           toJSON, withObject, (.:), (.:?), (.=))
+import Data.Time
+import Protolude    hiding (print)
 
-import qualified Data.Text    as T
+import qualified Data.Text as T
 
 --import Data.List as RE
 --  (lookup, nub)
