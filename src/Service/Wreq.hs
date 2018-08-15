@@ -58,5 +58,5 @@ handleException source action = do
       mzero
     Right r -> pure (r ^. responseBody)
     where
-      try' :: IO (a) -> IO (Either SomeException a)
+      try' :: IO a -> IO (Either SomeException a)
       try' = try
