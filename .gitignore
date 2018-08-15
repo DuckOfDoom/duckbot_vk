@@ -28,3 +28,4 @@ duckbot.cabal
 
 config.json
 hlint.html
+.vscode/
