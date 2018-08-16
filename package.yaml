@@ -45,6 +45,7 @@ default-extensions:
 - NoImplicitPrelude
 - OverloadedStrings
 - LambdaCase
+- PartialTypeSignatures
 
 library:
   source-dirs: src

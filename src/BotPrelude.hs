@@ -8,9 +8,13 @@ import Control.Lens as RE (makeLenses, makePrisms, (%~), (.~), (?~), (^.),
                            (^..), (^?), _1, _2, _3, _4, _Just, _Nothing)
 import Data.Aeson   as RE (FromJSON, ToJSON, Value(..), object, parseJSON,
                            toJSON, withObject, (.:), (.:?), (.=))
-import Data.Time
-import Protolude    hiding (print)
 
+import Data.HashMap.Strict as RE (HashMap)
+
+import Data.Time
+import Protolude hiding (print)
+
+import qualified Data.ByteString.Lazy as LBS
 import qualified Data.Text as T
 
 --import Data.List as RE
@@ -24,6 +28,8 @@ import qualified Data.Text as T
 
 getCurrentTime :: MonadIO m => m UTCTime
 getCurrentTime = liftIO Data.Time.getCurrentTime
+
+lbsToStrict = LBS.toStrict
 
 showT :: Show a => a -> Text
 showT = T.pack . show

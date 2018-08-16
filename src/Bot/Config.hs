@@ -14,8 +14,8 @@ import BotPrelude
 
 data Config = Config
   { _accessToken        :: Text
-  , _apiVersion         :: Double
-  , _longPollVersion    :: Double
+  , _apiVersion         :: Text
+  , _longPollVersion    :: Text
   , _port               :: Int
   , _confirmationString :: Maybe Text
   } deriving (Show, Generic)

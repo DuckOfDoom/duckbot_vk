@@ -21,9 +21,13 @@ import Service.Wreq             (getWith)
 
 import NeatInterpolation
 
+logRequest :: Text -> _ ()
+logRequest r = logInfo [text|Starting request '${r}'|]
+
 getLongPollingServer :: Bot (Maybe (Text, Text, Text))
 getLongPollingServer = do
-  lp_version <- showT . (^. (config . longPollVersion)) <$> ask
+  logRequest $ "getLongPollingServer"
+  lp_version <- (^. (config . longPollVersion)) <$> ask
   settings <- getWith Url.getLongPollServer (patch lp_version) >>= maybe (pure Nothing) parseSettings
   logInfo $ "Got Result:" <> showT settings
   pure Nothing
@@ -46,9 +50,3 @@ parse bs =
       logError [text|Got error:
       ${source}|]
       pure Nothing
-
---    decodeResult :: (FromJSON a) => LBS.ByteString -> Bot (Maybe a)
---    decodeResult json = case (decode json) :: FromJSON a => Maybe a of
---      Nothing -> do
---        pure Nothing
---      Just res -> pure $ Just res
