@@ -5,23 +5,35 @@
 
 module API.Types
   ( Response(..)
+  , prettifyError
   ) where
 
 import BotPrelude
 
-import Data.Aeson.Types    (typeMismatch)
-import Data.HashMap.Strict as HM (toList)
+import           Data.Aeson.Encode.Pretty (Config(..), Indent(..),
+                                           NumberFormat(..), encodePretty',
+                                           keyOrder)
+import           Data.Aeson.Types         (typeMismatch)
+import qualified Data.ByteString.Lazy     as LBS (toStrict)
+import           Data.HashMap.Strict      as HM (toList)
+import           Data.Text.Encoding       as T
 
--- instance FromJSON (Text, Text) where
---   parseJSON (Object o) = 
---       let m = (parseJSON o) :: Parser 
+prettifyError :: Response -> Text
+prettifyError e = T.decodeUtf8 $ LBS.toStrict $ encodePretty' conf e
+  where
+    conf = Config
+      { confIndent = Spaces 2
+      , confCompare = keyOrder ["code", "message", "requestParams"]
+      , confNumFormat = Generic
+      , confTrailingNewline = False
+      }
 
 data Response
  = None
  | Error
   { code          :: Int
   , message       :: Text
-  , requestParams :: [(Text, Text)]
+  , requestParams :: [HashMap Text Text]
   }
  | LongPollServerSettings
   { key    :: Text

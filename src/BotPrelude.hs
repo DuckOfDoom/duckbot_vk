@@ -15,7 +15,7 @@ import Data.Time
 import Protolude hiding (print)
 
 import qualified Data.ByteString.Lazy as LBS
-import qualified Data.Text as T
+import qualified Data.Text            as T
 
 --import Data.List as RE
 --  (lookup, nub)

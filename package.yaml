@@ -46,6 +46,7 @@ default-extensions:
 - OverloadedStrings
 - LambdaCase
 - PartialTypeSignatures
+- RecordWildCards
 
 library:
   source-dirs: src

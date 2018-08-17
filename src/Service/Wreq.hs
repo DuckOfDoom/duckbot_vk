@@ -29,7 +29,7 @@ class HasWreqOptions a where
 instance HasWreqOptions Env where
   getOptions e = defaults
     & param "access_token" .~ [e ^. (config . accessToken)]
-    & param "v"            .~ [showT $ e ^. (config . apiVersion)]
+    & param "v"            .~ [e ^. (config . apiVersion)]
 
 class (MonadIO m, MonadReader Env m) => MonadWreq m
 instance MonadWreq Bot

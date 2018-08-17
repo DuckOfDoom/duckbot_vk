@@ -1,5 +1,4 @@
 {-# LANGUAGE QuasiQuotes     #-}
-{-# LANGUAGE RecordWildCards #-}
 
 module API.Requests
   ( getLongPollingServer
@@ -7,11 +6,10 @@ module API.Requests
 
 import BotPrelude
 
-import API.Types                (Response(..))
+import API.Types                (Response(..), prettifyError)
 import Bot.Config               (longPollVersion)
 import Bot.Types                (Bot, config)
 import Data.Aeson               (decode)
-import Data.Aeson.Encode.Pretty (encodePretty)
 import Data.ByteString.Lazy     as LBS
 import Data.Text.Encoding       as T
 import Network.Wreq             (param)
@@ -22,7 +20,7 @@ import Service.Wreq             (getWith)
 import NeatInterpolation
 
 logRequest :: Text -> _ ()
-logRequest r = logInfo [text|Starting request '${r}'|]
+logRequest r = logInfo [text|Making request '${r}'|]
 
 getLongPollingServer :: Bot (Maybe (Text, Text, Text))
 getLongPollingServer = do
@@ -42,11 +40,11 @@ parse bs =
   case decode bs :: Maybe Response of
     Nothing -> do
       let source = T.decodeUtf8 $ LBS.toStrict bs
-      logError [text|Failed to parse json:
+      logError [text|Failed to parse JSON:
       ${source}|]
       pure Nothing
     Just err@Error{..} -> do
-      let source = T.decodeUtf8 $ LBS.toStrict $ encodePretty err
+      let source = prettifyError err
       logError [text|Got error:
       ${source}|]
       pure Nothing
