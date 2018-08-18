@@ -1,20 +1,22 @@
 module JSONTests
   (run) where
 
-import API.Types           (Response(..))
+import API.Types           (Error(..))
 import BotPrelude
 import Data.Aeson          (decode, encode)
-import Data.HashMap.Strict as HM (empty, fromList, singleton)
+import Data.HashMap.Strict as HM (--empty, singleton,  
+  fromList)
+import Data.ByteString.Lazy as LBS (toStrict)
 
 import Test.Hspec
 
 run :: IO ()
 run = do
-  putStrLn $ showT $ lbsToStrict $ encode $ ([fromList [("herp", "derp")], fromList [("hey", "wat")]] :: [HashMap Text Text])
+  putStrLn $ showT $ LBS.toStrict $ encode $ ([fromList [("herp", "derp")], fromList [("hey", "wat")]] :: [HashMap Text Text])
   hspec $
     describe "'Response' parsing" $
       it "parses Error" $
-        (decode errorJSON :: Maybe Response) `shouldBe` Just (Error 100 "herp" [fromList [("herp", "derp")], fromList [("hey", "wat")]])
+        (decode errorJSON :: Maybe Error) `shouldBe` Just (Error 100 "herp" [fromList [("herp", "derp")], fromList [("hey", "wat")]])
       -- it "parses misc" $
       --     (decode "[{\"a\": \"b\"}, {\"c\": \"d\"}]" :: Maybe (HashMap Text Text)) `shouldBe` (Just $ HM.fromList [("a", "b"), ("c", "d")] )
   where

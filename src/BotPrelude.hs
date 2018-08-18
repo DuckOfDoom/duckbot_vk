@@ -14,7 +14,6 @@ import Data.HashMap.Strict as RE (HashMap)
 import Data.Time
 import Protolude hiding (print)
 
-import qualified Data.ByteString.Lazy as LBS
 import qualified Data.Text            as T
 
 --import Data.List as RE
@@ -28,8 +27,6 @@ import qualified Data.Text            as T
 
 getCurrentTime :: MonadIO m => m UTCTime
 getCurrentTime = liftIO Data.Time.getCurrentTime
-
-lbsToStrict = LBS.toStrict
 
 showT :: Show a => a -> Text
 showT = T.pack . show

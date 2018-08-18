@@ -8,13 +8,9 @@ import BotPrelude
 
 import Service.Logging (logInfo)
 
-type ServerAddress = Text
-type SecretKey = Text
-type Timestamp = Text
-
 startLongPolling :: Bot ()
 startLongPolling = do
   logInfo "Starting long polling..."
-  res <- getLongPollingServer
+  _ <- getLongPollingServer
   return ()
 
