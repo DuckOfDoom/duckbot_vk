@@ -2,12 +2,13 @@
 
 module API.Requests
   ( getLongPollingServer
+  , parseResponse
+  , parse
   ) where
 
 import BotPrelude
 
-import API.Types            (Error(..), LongPollServerSettings(..),
-                             prettifyError)
+import API.Types            (Error(..), LongPollServerSettings(..), prettifyError)
 import Bot.Config           (longPollVersion)
 import Bot.Types            (Bot, config)
 import Data.Aeson           (decode)
@@ -25,41 +26,41 @@ logRequest r = logInfo [text|Making request '${r}'|]
 
 getLongPollingServer :: Bot (Maybe (Text, Text, Text))
 getLongPollingServer = do
-  logRequest $ "getLongPollingServer"
   lp_version <- (^. (config . longPollVersion)) <$> ask
   settings <- getWith Url.getLongPollServer (patch lp_version) >>= maybe (pure Nothing) parseSettings
   logInfo $ "Got Result:" <> showT settings
   pure Nothing
     where
       patch ver o = o & param "lp_version" .~ [ver]
+
       parseSettings :: LBS.ByteString -> Bot (Maybe LongPollServerSettings)
-      parseSettings = parse
+      parseSettings = parse Url.getLongPollServer
 
-parse :: FromJSON a => LBS.ByteString -> Bot (Maybe a)
-parse bs = do 
-    e <- parseError bs
-    case e of 
-      Nothing -> parseResponse bs
-      Just _  -> pure  Nothing
+parseResponse :: FromJSON a => LBS.ByteString -> Either Error a
+parseResponse bs = 
+    case (decode bs) :: Maybe Error of
+      Just err  -> Left err
+      Nothing -> 
+        case decode bs of 
+          Just r -> Right r 
+          Nothing -> Left $ parsingError bs
     where
-      parseError :: LBS.ByteString -> Bot (Maybe Error)
-      parseError s =
-        case (decode s) of
-          Nothing -> pure Nothing
-          Just e -> do
-            let source = prettifyError e
-            logError  [text|Got error:
-            ${source}|]
-            pure $ Just e
+      parsingError bs = ParsingError
+        { message = "Failed to parse JSON"
+        , json = T.decodeUtf8 $ LBS.toStrict bs
+        }
 
-      parseResponse :: FromJSON a => LBS.ByteString -> Bot (Maybe a)
-      parseResponse s =
-        case (decode s) of
-          Nothing -> do
-            let source = T.decodeUtf8 $ LBS.toStrict bs
-            logError [text|Failed to parse JSON:
-            ${source}|]
-            pure $ Nothing
-
-          Just result ->
-            pure $ result
+parse :: FromJSON a => Text -> LBS.ByteString -> Bot (Maybe a)
+parse methodName bs = case parseResponse bs of 
+    Left e@ParsingError{..} -> do
+        logError [text|'Request: ${methodName}'
+        Failed to parse JSON:
+        ${json}|]
+        pure Nothing
+    Left e@Error{..} -> do
+        let source = prettifyError e
+        logError [text|'Request ${methodName}'
+        Received error:
+        ${source}|]
+        pure Nothing
+    Right result -> pure $ Just result

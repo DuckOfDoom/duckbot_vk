@@ -1,23 +1,26 @@
 module JSONTests
   (run) where
 
-import API.Types           (Error(..))
+import API.Types  (Error(..), LongPollServerSettings(..))
 import BotPrelude
-import Data.Aeson          (decode, encode)
-import Data.HashMap.Strict as HM (--empty, singleton,  
-  fromList)
+
+import API.Requests         (parse) -- TODO: Test this!
+import Data.Aeson           (decode, encode)
 import Data.ByteString.Lazy as LBS (toStrict)
+import Data.HashMap.Strict  as HM (fromList)
 
 import Test.Hspec
 
 run :: IO ()
-run = do
+run = do 
   putStrLn $ showT $ LBS.toStrict $ encode $ ([fromList [("herp", "derp")], fromList [("hey", "wat")]] :: [HashMap Text Text])
   hspec $
-    describe "'Response' parsing" $
-      it "parses Error" $
+    describe "parse json" $ do
+      it "parses Error" $ 
         (decode errorJSON :: Maybe Error) `shouldBe` Just (Error 100 "herp" [fromList [("herp", "derp")], fromList [("hey", "wat")]])
-      -- it "parses misc" $
-      --     (decode "[{\"a\": \"b\"}, {\"c\": \"d\"}]" :: Maybe (HashMap Text Text)) `shouldBe` (Just $ HM.fromList [("a", "b"), ("c", "d")] )
+      it "parses nested responses" $ 
+        (decode lpsRequestJSON :: Maybe LongPollServerSettings) `shouldBe` Just (LongPollServerSettings "keyValue" "serverValue" "tsValue")
   where
-    errorJSON = "{\"error\":{\"error_code\":100, \"error_msg\":\"herp\", \"request_params\": [{\"herp\":\"derp\"}, {\"hey\": \"wat\"}}]}"
+    errorJSON = "{\"error\":{\"error_code\":100, \"error_msg\":\"herp\", \"request_params\": [{\"herp\":\"derp\"}, {\"hey\": \"wat\"}]}}"
+    lpsRequestJSON = "{\"response\":{\"error_code\":100, \"error_msg\":\"herp\", \"request_params\": [{\"herp\":\"derp\"}, {\"hey\": \"wat\"}]}}"
+
