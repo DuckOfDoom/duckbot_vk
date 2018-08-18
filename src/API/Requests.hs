@@ -3,7 +3,6 @@
 module API.Requests
   ( getLongPollingServer
   , parseResponse
-  , parse
   ) where
 
 import BotPrelude
@@ -21,14 +20,10 @@ import Service.Wreq         (getWith)
 
 import NeatInterpolation
 
-logRequest :: Text -> Bot ()
-logRequest r = logInfo [text|Making request '${r}'|]
-
 getLongPollingServer :: Bot (Maybe (Text, Text, Text))
 getLongPollingServer = do
   lp_version <- (^. (config . longPollVersion)) <$> ask
   settings <- getWith Url.getLongPollServer (patch lp_version) >>= maybe (pure Nothing) parseSettings
-  logInfo $ "Got Result:" <> showT settings
   pure Nothing
     where
       patch ver o = o & param "lp_version" .~ [ver]
@@ -43,16 +38,16 @@ parseResponse bs =
       Nothing -> 
         case decode bs of 
           Just r -> Right r 
-          Nothing -> Left $ parsingError bs
+          Nothing -> Left $ parsingError
     where
-      parsingError bs = ParsingError
+      parsingError = ParsingError
         { message = "Failed to parse JSON"
         , json = T.decodeUtf8 $ LBS.toStrict bs
         }
 
 parse :: FromJSON a => Text -> LBS.ByteString -> Bot (Maybe a)
 parse methodName bs = case parseResponse bs of 
-    Left e@ParsingError{..} -> do
+    Left ParsingError{..} -> do
         logError [text|'Request: ${methodName}'
         Failed to parse JSON:
         ${json}|]

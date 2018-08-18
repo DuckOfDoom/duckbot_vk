@@ -5,6 +5,8 @@
 {-# LANGUAGE RecordWildCards       #-}
 {-# LANGUAGE TemplateHaskell       #-}
 
+{-# OPTIONS_GHC -fno-warn-partial-type-signatures #-}
+
 module API.Types
   ( Error(..)
   , LongPollServerSettings(..)
@@ -20,6 +22,15 @@ import qualified Data.ByteString.Lazy     as LBS (toStrict)
 import qualified Data.HashMap.Strict      as HM
 import           Data.Text.Encoding       as T
 
+-- every response is in nested "response" object
+parseResponse :: MonadPlus m => (_ -> m a) -> Value -> m a
+parseResponse responseParser (Object o) =
+  case head $ HM.toList o of
+    Just ("response", Object v) -> responseParser v
+    _                           -> mzero
+parseResponse _ _ = mzero
+
+-- Error ----------------------------------------------
 data Error
   = Error
   { error_code     :: Int
@@ -55,7 +66,7 @@ prettifyError e = T.decodeUtf8 $ LBS.toStrict $ (encodePretty' conf e)
       , confTrailingNewline = False
       }
 
------------------------------------------------------------------------
+-- LongPollServerSettings ----------------------------------------------
 data LongPollServerSettings = LongPollServerSettings
   { key    :: Text
   , server :: Text
@@ -63,6 +74,13 @@ data LongPollServerSettings = LongPollServerSettings
   }
   deriving (Show, Eq, Generic)
 
-instance FromJSON LongPollServerSettings
+instance FromJSON LongPollServerSettings where
+  parseJSON = parseResponse $ \v ->
+    LongPollServerSettings
+        <$> v .: "key"
+        <*> v .: "server"
+        <*> v .: "ts"
+
 instance ToJSON LongPollServerSettings
+
 -----------------------------------------------------------------------
