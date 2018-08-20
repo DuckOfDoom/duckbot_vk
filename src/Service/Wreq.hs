@@ -54,7 +54,8 @@ handleException source action = do
   case result of
     Left ex -> do
       let exMessage = showT ex
-      logError [text|Caught exception when trying to ${source}:\n${exMessage}|]
+      logError [text|Caught exception when trying to ${source}:
+      ${exMessage}|]
       mzero
     Right r -> pure (r ^. responseBody)
     where

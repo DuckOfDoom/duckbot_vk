@@ -9,7 +9,12 @@
 
 module API.Types
   ( Error(..)
+  , json
+  , message
   , LongPollServerSettings(..)
+  , server
+  , key
+  , ts
   , Update(..)
   , prettifyError
   ) where
@@ -21,9 +26,14 @@ import           Data.Aeson.Encode.Pretty (Config(..), Indent(..),
                                            keyOrder)
 import qualified Data.ByteString.Lazy     as LBS (toStrict)
 import qualified Data.HashMap.Strict      as HM
-import           Data.Text.Encoding       as T
+import qualified Data.Text                as T
+import           Data.Text.Encoding       as E
+
+import GHC.Show (Show(..))
+
 
 -- every response is in nested "response" object
+
 parseResponse :: MonadPlus m => (_ -> m a) -> Value -> m a
 parseResponse responseParser (Object o) =
   case head $ HM.toList o of
@@ -32,17 +42,19 @@ parseResponse responseParser (Object o) =
 parseResponse _ _ = mzero
 
 -- Error ----------------------------------------------
+
 data Error
   = Error
-  { error_code     :: Int
-  , error_msg      :: Text
-  , request_params :: [HashMap Text Text]
+  { _error_code     :: Int
+  , _error_msg      :: Text
+  , _request_params :: [HashMap Text Text]
   }
   | ParsingError
-  { message :: Text
-  , json    :: Text
+  { _message :: Text
+  , _json    :: Text
   }
    deriving (Show, Eq, Generic)
+makeLenses ''Error
 
 instance FromJSON Error where
   parseJSON (Object o) =
@@ -55,25 +67,27 @@ instance FromJSON Error where
   parseJSON _ = mzero
 
 instance ToJSON Error where
-makeLenses ''Error
 
 prettifyError :: Error -> Text
-prettifyError e = T.decodeUtf8 $ LBS.toStrict $ (encodePretty' conf e)
+prettifyError e = E.decodeUtf8 $ LBS.toStrict $ encodePretty' conf e
   where
     conf = Config
       { confIndent = Spaces 2
-      , confCompare = keyOrder ["error_msg", "error_code", "request_params", "key", "value"]
+      , confCompare = keyOrder ["_error_msg", "_error_code", "_request_params", "key", "value"]
       , confNumFormat = Generic
       , confTrailingNewline = False
       }
 
 -- LongPollServerSettings ----------------------------------------------
+
 data LongPollServerSettings = LongPollServerSettings
-  { key    :: Text
-  , server :: Text
-  , ts     :: Integer
+  { _key    :: Text
+  , _server :: Text
+  , _ts     :: Integer
   }
-  deriving (Show, Eq, Generic)
+  deriving (Eq, Generic)
+
+makeLenses ''LongPollServerSettings
 
 instance FromJSON LongPollServerSettings where
   parseJSON = parseResponse $ \v ->
@@ -84,6 +98,16 @@ instance FromJSON LongPollServerSettings where
 
 instance ToJSON LongPollServerSettings
 
+instance Show LongPollServerSettings where
+  show lps = T.unpack $ mconcat
+   [ "Server: '" , lps ^. server
+   , "' Key: '" , lps ^. key
+   , "' Ts: '"  , showT $ lps ^. ts
+   , "'"
+   ]
+
 -----------------------------------------------------------------------
 
+
 data Update = Update
+

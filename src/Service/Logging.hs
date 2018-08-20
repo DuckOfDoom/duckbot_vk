@@ -21,7 +21,6 @@ instance HasLog Env where
 type LogFunc env m = (MonadReader env m, HasLog env, MonadIO m)
              => Text
              -> m ()
-
 logInfo :: LogFunc env m
 logInfo = log "INFO:"
 

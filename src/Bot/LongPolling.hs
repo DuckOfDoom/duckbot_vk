@@ -2,18 +2,21 @@ module Bot.LongPolling
   ( startLongPolling
   ) where
 
-import API.Types (LongPollingServerSettings)
-import API.Requests (getLongPollingServer)
-import Bot.Types    (Bot)
+import API.Requests    (getLongPollingServer, longPoll)
+import API.Types       (LongPollServerSettings)
+import Bot.Types       (Bot)
 import BotPrelude
-
 import Service.Logging (logInfo)
 
 startLongPolling :: Bot ()
 startLongPolling = do
   logInfo "Starting long polling..."
   initialSettings <- getLongPollingServer
-  return () 
-    where 
-      mkRequest :: LongPollingServerSettings -> Bot ()
-      mkRequest s = 
+  logInfo $ "Got initial settings:\n" <> showT initialSettings
+  maybe (pure ()) mkRequest initialSettings
+    where
+      mkRequest :: LongPollServerSettings -> Bot ()
+      mkRequest s = do
+        res <- longPoll s
+        pure ()
+

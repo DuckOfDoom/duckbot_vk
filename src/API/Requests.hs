@@ -1,22 +1,26 @@
 {-# LANGUAGE QuasiQuotes     #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module API.Requests
   ( getLongPollingServer
+  , longPoll
   , parseResponse -- needed for testing
   ) where
 
 import BotPrelude
 
-import API.Types            (Error(..), LongPollServerSettings(..), prettifyError)
-import Bot.Config           (longPollVersion)
-import Bot.Types            (Bot, config)
-import Data.Aeson           (decode)
+import API.Types           (Error(..), LongPollServerSettings(..), Update(..),
+                            key, prettifyError, server, ts)
+import Bot.Config          (longPollVersion)
+import Bot.Types           (Bot, config)
+import Data.Aeson          (decode)
+import Network.Wreq        (param)
+import Service.Logging     (logError, logInfo)
+import Service.UrlComposer as Url (getLongPollServer, mkLongPollServerUrl)
+import Service.Wreq        (getWith)
+
 import Data.ByteString.Lazy as LBS
 import Data.Text.Encoding   as T
-import Network.Wreq         (param)
-import Service.Logging      (logError, logInfo)
-import Service.UrlComposer  as Url (getLongPollServer)
-import Service.Wreq         (getWith)
 
 import NeatInterpolation
 
@@ -32,39 +36,37 @@ getLongPollingServer = do
 
 longPoll :: LongPollServerSettings -> Bot (Maybe (LongPollServerSettings, [Update]))
 longPoll settings = do
-  val <- getWith serverUrl (patch )
+  version <- (^. (config . longPollVersion)) <$> ask
+  val <- getWith (Url.mkLongPollServerUrl serverUrl) (patch version)
+  logInfo $ showT val
+  pure Nothing
     where
-       serverUrl = (settings ^. server)
+      serverUrl = (settings ^. server)
        -- https://vk.com/dev/using_longpoll
-       pattch o = o 
+      patch version o = o
          & param "act" .~ ["a_check"]
-         & param "mode" .~ [2]
-         & param "version" .~ [ask ^. long_poll_version]
+         & param "mode" .~ ["2"]
+         & param "version" .~ [version]
          & param "key" .~ [settings ^. key]
-         & param "ts" .~ [settings ^. ts]
-
-
+         & param "ts" .~ [showT $ settings ^. ts]
 
 parseResponse :: FromJSON a => LBS.ByteString -> Either Error a
-parseResponse bs = 
+parseResponse bs =
     case (decode bs) :: Maybe Error of
       Just err  -> Left err
-      Nothing -> 
-        case decode bs of 
-          Just r -> Right r 
+      Nothing ->
+        case decode bs of
+          Just r  -> Right r
           Nothing -> Left $ parsingError
     where
-      parsingError = ParsingError
-        { message = "Failed to parse JSON"
-        , json = T.decodeUtf8 $ LBS.toStrict bs
-        }
+      parsingError = ParsingError "Failed to parse JSON" (T.decodeUtf8 $ LBS.toStrict bs)
 
 parse :: FromJSON a => Text -> LBS.ByteString -> Bot (Maybe a)
-parse methodName bs = case parseResponse bs of 
+parse methodName bs = case parseResponse bs of
     Left ParsingError{..} -> do
         logError [text|'Request: ${methodName}'
         Failed to parse JSON:
-        ${json}|]
+        ${_json}|]
         pure Nothing
     Left e@Error{..} -> do
         let source = prettifyError e
