@@ -2,7 +2,7 @@
 
 module API.Requests
   ( getLongPollingServer
-  , parseResponse
+  , parseResponse -- needed for testing
   ) where
 
 import BotPrelude
@@ -20,16 +20,30 @@ import Service.Wreq         (getWith)
 
 import NeatInterpolation
 
-getLongPollingServer :: Bot (Maybe (Text, Text, Text))
+getLongPollingServer :: Bot (Maybe LongPollServerSettings)
 getLongPollingServer = do
   lp_version <- (^. (config . longPollVersion)) <$> ask
-  settings <- getWith Url.getLongPollServer (patch lp_version) >>= maybe (pure Nothing) parseSettings
-  pure Nothing
+  getWith Url.getLongPollServer (patch lp_version) >>= maybe (pure Nothing) parseSettings
     where
       patch ver o = o & param "lp_version" .~ [ver]
 
       parseSettings :: LBS.ByteString -> Bot (Maybe LongPollServerSettings)
       parseSettings = parse Url.getLongPollServer
+
+longPoll :: LongPollServerSettings -> Bot (Maybe (LongPollServerSettings, [Update]))
+longPoll settings = do
+  val <- getWith serverUrl (patch )
+    where
+       serverUrl = (settings ^. server)
+       -- https://vk.com/dev/using_longpoll
+       pattch o = o 
+         & param "act" .~ ["a_check"]
+         & param "mode" .~ [2]
+         & param "version" .~ [ask ^. long_poll_version]
+         & param "key" .~ [settings ^. key]
+         & param "ts" .~ [settings ^. ts]
+
+
 
 parseResponse :: FromJSON a => LBS.ByteString -> Either Error a
 parseResponse bs = 

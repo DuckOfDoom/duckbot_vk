@@ -19,8 +19,8 @@ run = --do
       it "parses Error" $
         (parseResponse errorJSON :: Either Error LongPollServerSettings) `shouldBe` Left (Error 100 "herp" [fromList [("herp", "derp")], fromList [("hey", "wat")]])
       it "parses LongPollServerSettings" $
-        (parseResponse lpsRequestJSON :: Either Error LongPollServerSettings) `shouldBe` Right (LongPollServerSettings "keyValue" "serverValue" "tsValue")
+        (parseResponse lpsRequestJSON :: Either Error LongPollServerSettings) `shouldBe` Right (LongPollServerSettings "keyValue" "serverValue" 100500)
   where
     errorJSON = "{\"error\":{\"error_code\":100, \"error_msg\":\"herp\", \"request_params\": [{\"herp\":\"derp\"}, {\"hey\": \"wat\"}]}}"
-    lpsRequestJSON = "{\"response\":{\"key\":\"keyValue\",\"server\":\"serverValue\",\"ts\":\"tsValue\"}}"
+    lpsRequestJSON = "{\"response\":{\"key\":\"keyValue\",\"server\":\"serverValue\",\"ts\":100500}}"
 

@@ -10,6 +10,7 @@
 module API.Types
   ( Error(..)
   , LongPollServerSettings(..)
+  , Update(..)
   , prettifyError
   ) where
 
@@ -70,7 +71,7 @@ prettifyError e = T.decodeUtf8 $ LBS.toStrict $ (encodePretty' conf e)
 data LongPollServerSettings = LongPollServerSettings
   { key    :: Text
   , server :: Text
-  , ts     :: Text
+  , ts     :: Integer
   }
   deriving (Show, Eq, Generic)
 
@@ -84,3 +85,5 @@ instance FromJSON LongPollServerSettings where
 instance ToJSON LongPollServerSettings
 
 -----------------------------------------------------------------------
+
+data Update = Update

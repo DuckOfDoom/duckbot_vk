@@ -8,10 +8,10 @@ import BotPrelude
 import NeatInterpolation (text)
 
 getLongPollServer :: Text
-getLongPollServer = compose "messages.getLongPollServer"
+getLongPollServer = composeApi "messages.getLongPollServer"
 
-type MethodName = Text
+-- composeLongPollingServer :: Text -> Text
+-- composeLongPollingServer server = [text|${server}|]
 
-compose :: MethodName -> Text
-compose method = [text|https://api.vk.com/method/${method}|]
-
+composeApi :: Text -> Text
+composeApi method = [text|https://api.vk.com/method/${method}|]
