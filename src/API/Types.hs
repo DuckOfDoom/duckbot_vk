@@ -1,22 +1,30 @@
-{-# LANGUAGE DeriveGeneric         #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE QuasiQuotes           #-}
-{-# LANGUAGE RecordWildCards       #-}
-{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE DeriveGeneric          #-}
+{-# LANGUAGE DuplicateRecordFields  #-}
+{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE QuasiQuotes            #-}
+{-# LANGUAGE RecordWildCards        #-}
+{-# LANGUAGE TemplateHaskell        #-}
 
 {-# OPTIONS_GHC -fno-warn-partial-type-signatures #-}
 
 module API.Types
-  ( Error(..)
+  ( prettifyError
+  , Error(..)
+  , code
+  , msg
+  , requestParams
   , json
   , message
   , LongPollServerSettings(..)
   , server
   , key
+  , initialTs
+  , LongPollResponse(..)
   , ts
+  -- , updates
   , Update(..)
-  , prettifyError
   ) where
 
 import BotPrelude
@@ -45,9 +53,9 @@ parseResponse _ _ = mzero
 
 data Error
   = Error
-  { _error_code     :: Int
-  , _error_msg      :: Text
-  , _request_params :: [HashMap Text Text]
+  { _code          :: Int
+  , _msg           :: Text
+  , _requestParams :: [HashMap Text Text]
   }
   | ParsingError
   { _message :: Text
@@ -81,9 +89,9 @@ prettifyError e = E.decodeUtf8 $ LBS.toStrict $ encodePretty' conf e
 -- LongPollServerSettings ----------------------------------------------
 
 data LongPollServerSettings = LongPollServerSettings
-  { _key    :: Text
-  , _server :: Text
-  , _ts     :: Integer
+  { _server :: Text
+  , _key    :: Text
+  , _initialTs     :: Integer
   }
   deriving (Eq, Generic)
 
@@ -92,8 +100,8 @@ makeLenses ''LongPollServerSettings
 instance FromJSON LongPollServerSettings where
   parseJSON = parseResponse $ \v ->
     LongPollServerSettings
-        <$> v .: "key"
-        <*> v .: "server"
+        <$> v .: "server"
+        <*> v .: "key"
         <*> v .: "ts"
 
 instance ToJSON LongPollServerSettings
@@ -101,13 +109,27 @@ instance ToJSON LongPollServerSettings
 instance Show LongPollServerSettings where
   show lps = T.unpack $ mconcat
    [ "Server: '" , lps ^. server
-   , "' Key: '" , lps ^. key
-   , "' Ts: '"  , showT $ lps ^. ts
+   , "'\nKey: '" , lps ^. key
+   , "'\nTs: '"  , showT $ lps ^. initialTs
    , "'"
    ]
 
 -----------------------------------------------------------------------
-
-
 data Update = Update
+  deriving (Show, Eq, Generic)
 
+instance FromJSON Update 
+
+data LongPollResponse = LongPollResponse
+  { _ts      :: Integer
+  -- , _updates :: Maybe [Update]
+  }
+  deriving (Show, Eq, Generic)
+
+makeLenses ''LongPollResponse
+
+instance FromJSON LongPollResponse where
+  parseJSON (Object v) = LongPollResponse
+    <$> v .: "ts"
+    -- <*> v .: "updates"
+  parseJSON _ = mzero
