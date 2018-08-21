@@ -5,8 +5,6 @@ import API.Types  (Error(..), LongPollServerSettings(..))
 import BotPrelude
 
 import API.Requests         (parseResponse)
-import Data.Aeson           (encode)
-import Data.ByteString.Lazy as LBS (toStrict)
 import Data.HashMap.Strict  as HM (fromList)
 
 import Test.Hspec

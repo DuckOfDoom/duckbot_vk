@@ -9,13 +9,15 @@ module API.Requests
 
 import BotPrelude
 
-import API.Types           (Error(..), LongPollServerSettings(..), LongPollResponse(..), Update(..),
-                            key, prettifyError, server, ts, initialTs)
-import Bot.Config          (longPollVersion)
-import Bot.Types           (Bot, config)
-import Data.Aeson          (decode)
-import Network.Wreq        (param)
-import Service.Logging     (logError, logInfo)
+import API.Types (Error(..), LongPollResponse(..), LongPollServerSettings(..),
+                  Update(..), key, prettifyError, server, ts)
+
+import Bot.Config   (longPollVersion)
+import Bot.Types    (Bot, config)
+import Data.Aeson   (decode)
+import Network.Wreq (param)
+
+import Service.Logging     (logError)
 import Service.UrlComposer as Url (getLongPollServer, mkLongPollServerUrl)
 import Service.Wreq        (getWith)
 
@@ -37,7 +39,7 @@ longPoll settings = do
   version <- (^. (config . longPollVersion)) <$> ask
   let serverUrl = Url.mkLongPollServerUrl (settings ^. server)
   json <- getWith serverUrl (patch version)
-  maybe (pure Nothing) (parse serverUrl) json 
+  maybe (pure Nothing) (parse serverUrl) json
     where
        -- https://vk.com/dev/using_longpoll
       patch version o = o
@@ -46,7 +48,7 @@ longPoll settings = do
          & param "wait" .~ ["25"]
          & param "version" .~ [version]
          & param "key" .~ [settings ^. key]
-         & param "ts" .~ [showT $ settings ^. initialTs]
+         & param "ts" .~ [showT $ settings ^. ts]
 
 parse :: FromJSON a => Text -> LBS.ByteString -> Bot (Maybe a)
 parse methodName bs = case parseResponse bs of
