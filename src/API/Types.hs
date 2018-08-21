@@ -17,17 +17,20 @@ module API.Types
   , ts
   , Update(..)
   , prettifyError
+
+  , test
   ) where
 
 import BotPrelude
 
-import           Data.Aeson.Encode.Pretty (Config(..), Indent(..),
-                                           NumberFormat(..), encodePretty',
-                                           keyOrder)
-import qualified Data.ByteString.Lazy     as LBS (toStrict)
-import qualified Data.HashMap.Strict      as HM
-import qualified Data.Text                as T
-import           Data.Text.Encoding       as E
+import Data.Aeson               (decode)
+import Data.Aeson.Encode.Pretty (Config(..), Indent(..), NumberFormat(..),
+                                 encodePretty', keyOrder)
+
+import qualified Data.ByteString.Lazy as LBS (toStrict)
+import qualified Data.HashMap.Strict  as HM
+import qualified Data.Text            as T
+import           Data.Text.Encoding   as E
 
 import GHC.Show (Show(..))
 
@@ -108,6 +111,35 @@ instance Show LongPollServerSettings where
 
 -----------------------------------------------------------------------
 
+data Update
+   = Undefined
+   | Message
+   { _text :: Text
+   }
+  deriving (Show, Eq)
 
-data Update = Update
+makeLenses ''Update
 
+instance FromJSON Update where
+  parseJSON (Array a) = do
+    uType <- (parseUpdateType $ head a)
+    case (uType :: Integer) of
+      4 -> pure $ Message "this is message"
+      _ -> pure Undefined
+    -- Update <$>
+    where
+      parseUpdateType (Just v) = parseJSON v
+      parseUpdateType _        = mzero
+
+      -- parseUpdateType :: Maybe Value -> _ Integer
+      -- parseUpdateType (Just v) = parseJSON v
+      -- parseUpdateType _        = mzero
+
+  parseJSON _ = trace ("Not an array" :: Text) $ mzero
+
+test :: IO ()
+test = do
+  print "This is test"
+  let u = (decode "[123, 12451, 14, 13, \"herp\"]" :: Maybe Update)
+  print $ showT u
+  pure ()
