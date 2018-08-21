@@ -9,8 +9,8 @@ module API.Requests
 
 import BotPrelude
 
-import API.Types           (Error(..), LongPollServerSettings(..), Update(..),
-                            key, prettifyError, server, ts)
+import API.Types           (Error(..), LongPollServerSettings(..), LongPollResponse(..), Update(..),
+                            key, prettifyError, server, ts, initialTs)
 import Bot.Config          (longPollVersion)
 import Bot.Types           (Bot, config)
 import Data.Aeson          (decode)
@@ -27,28 +27,42 @@ import NeatInterpolation
 getLongPollingServer :: Bot (Maybe LongPollServerSettings)
 getLongPollingServer = do
   lp_version <- (^. (config . longPollVersion)) <$> ask
-  getWith Url.getLongPollServer (patch lp_version) >>= maybe (pure Nothing) parseSettings
+  json <- getWith Url.getLongPollServer (patch lp_version)
+  maybe (pure Nothing) (parse Url.getLongPollServer) json
     where
       patch ver o = o & param "lp_version" .~ [ver]
 
-      parseSettings :: LBS.ByteString -> Bot (Maybe LongPollServerSettings)
-      parseSettings = parse Url.getLongPollServer
-
-longPoll :: LongPollServerSettings -> Bot (Maybe (LongPollServerSettings, [Update]))
+longPoll :: LongPollServerSettings -> Bot (Maybe LongPollResponse)
 longPoll settings = do
   version <- (^. (config . longPollVersion)) <$> ask
-  val <- getWith (Url.mkLongPollServerUrl serverUrl) (patch version)
-  logInfo $ showT val
-  pure Nothing
+  let serverUrl = Url.mkLongPollServerUrl (settings ^. server)
+  json <- getWith serverUrl (patch version)
+  logInfo $ "Got json: " <> showT json
+  maybe (pure Nothing) (parse serverUrl) json 
     where
-      serverUrl = (settings ^. server)
        -- https://vk.com/dev/using_longpoll
       patch version o = o
          & param "act" .~ ["a_check"]
          & param "mode" .~ ["2"]
+         & param "wait" .~ ["25"]
          & param "version" .~ [version]
          & param "key" .~ [settings ^. key]
-         & param "ts" .~ [showT $ settings ^. ts]
+         & param "ts" .~ [showT $ settings ^. initialTs]
+
+parse :: FromJSON a => Text -> LBS.ByteString -> Bot (Maybe a)
+parse methodName bs = case parseResponse bs of
+    Left ParsingError{..} -> do
+        logError [text|'Request: ${methodName}'
+          Failed to parse JSON:
+          ${_json}|]
+        pure Nothing
+    Left e@Error{..} -> do
+        let source = prettifyError e
+        logError [text|'Request ${methodName}'
+          Received error:
+          ${source}|]
+        pure Nothing
+    Right result -> pure $ Just result
 
 parseResponse :: FromJSON a => LBS.ByteString -> Either Error a
 parseResponse bs =
@@ -57,21 +71,6 @@ parseResponse bs =
       Nothing ->
         case decode bs of
           Just r  -> Right r
-          Nothing -> Left $ parsingError
+          Nothing -> Left parsingError
     where
       parsingError = ParsingError "Failed to parse JSON" (T.decodeUtf8 $ LBS.toStrict bs)
-
-parse :: FromJSON a => Text -> LBS.ByteString -> Bot (Maybe a)
-parse methodName bs = case parseResponse bs of
-    Left ParsingError{..} -> do
-        logError [text|'Request: ${methodName}'
-        Failed to parse JSON:
-        ${_json}|]
-        pure Nothing
-    Left e@Error{..} -> do
-        let source = prettifyError e
-        logError [text|'Request ${methodName}'
-        Received error:
-        ${source}|]
-        pure Nothing
-    Right result -> pure $ Just result
