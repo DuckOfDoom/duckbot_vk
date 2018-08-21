@@ -37,7 +37,6 @@ longPoll settings = do
   version <- (^. (config . longPollVersion)) <$> ask
   let serverUrl = Url.mkLongPollServerUrl (settings ^. server)
   json <- getWith serverUrl (patch version)
-  logInfo $ "Got json: " <> showT json
   maybe (pure Nothing) (parse serverUrl) json 
     where
        -- https://vk.com/dev/using_longpoll

@@ -25,9 +25,10 @@ module API.Types
   , ts
   -- , updates
   , Update(..)
+  , fromUser
+  , text
+  , timestamp
   , prettifyError
-
-  , test
   ) where
 
 import BotPrelude
@@ -120,7 +121,6 @@ instance Show LongPollServerSettings where
 
 -----------------------------------------------------------------------
 
-
 data Update
    = Undefined
    | Message
@@ -137,24 +137,16 @@ instance FromJSON Update where
     uType <- (parseUpdateType $ head a)
     case (uType :: Integer) of
       -- Message goes as follows [0:updateType, 1:message_id, 2:flags, 3:peer_id, 4:timestamp, 5: text ]
-      4 -> parseMessage a
+      4 -> parseMessage $ (drop 3 . toList) a
       _ -> pure Undefined
     where
       parseUpdateType (Just v) = parseJSON v
       parseUpdateType _        = mzero
 
-      parseMessage (Array peerId:ts:text) = Message <$> parseJSON peerId <*> parseJSON ts <*> parseJSON text
-
+      parseMessage (peerId:ts:text:_) = Message <$> parseJSON peerId <*> parseJSON ts <*> parseJSON text
       parseMessage _        = mzero
 
-  parseJSON _ = trace ("Not an array" :: Text) $ mzero
-
-test :: IO ()
-test = do
-  print "This is test"
-  let u = (decode "[123, 12451, 14, 13, 1337, \"herp\"]" :: Maybe Update)
-  print $ showT u
-  pure ()
+  parseJSON _ = mzero
 
 data LongPollResponse = LongPollResponse
   { _ts      :: Integer
