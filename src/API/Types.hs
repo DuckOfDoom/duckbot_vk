@@ -93,9 +93,9 @@ prettifyError e = E.decodeUtf8 $ LBS.toStrict $ encodePretty' conf e
 -- LongPollServerSettings ----------------------------------------------
 
 data LongPollServerSettings = LongPollServerSettings
-  { _server :: Text
-  , _key    :: Text
-  , _initialTs     :: Integer
+  { _server    :: Text
+  , _key       :: Text
+  , _initialTs :: Integer
   }
   deriving (Eq, Generic)
 
@@ -119,24 +119,14 @@ instance Show LongPollServerSettings where
    ]
 
 -----------------------------------------------------------------------
-data LongPollResponse = LongPollResponse
-  { _ts      :: Integer
-  -- , _updates :: Maybe [Update]
-  }
-  deriving (Show, Eq, Generic)
 
-makeLenses ''LongPollResponse
-
-instance FromJSON LongPollResponse where
-  parseJSON (Object v) = LongPollResponse
-    <$> v .: "ts"
-    -- <*> v .: "updates"
-  parseJSON _ = mzero
 
 data Update
    = Undefined
    | Message
-   { _text :: Text
+   { _fromUser  :: Integer
+   , _timestamp :: Integer
+   , _text      :: Text
    }
   deriving (Show, Eq)
 
@@ -146,22 +136,36 @@ instance FromJSON Update where
   parseJSON (Array a) = do
     uType <- (parseUpdateType $ head a)
     case (uType :: Integer) of
-      4 -> pure $ Message "this is message"
+      -- Message goes as follows [0:updateType, 1:message_id, 2:flags, 3:peer_id, 4:timestamp, 5: text ]
+      4 -> parseMessage a
       _ -> pure Undefined
-    -- Update <$>
     where
       parseUpdateType (Just v) = parseJSON v
       parseUpdateType _        = mzero
 
-      -- parseUpdateType :: Maybe Value -> _ Integer
-      -- parseUpdateType (Just v) = parseJSON v
-      -- parseUpdateType _        = mzero
+      parseMessage (Array peerId:ts:text) = Message <$> parseJSON peerId <*> parseJSON ts <*> parseJSON text
+
+      parseMessage _        = mzero
 
   parseJSON _ = trace ("Not an array" :: Text) $ mzero
 
 test :: IO ()
 test = do
   print "This is test"
-  let u = (decode "[123, 12451, 14, 13, \"herp\"]" :: Maybe Update)
+  let u = (decode "[123, 12451, 14, 13, 1337, \"herp\"]" :: Maybe Update)
   print $ showT u
   pure ()
+
+data LongPollResponse = LongPollResponse
+  { _ts      :: Integer
+  , _updates :: [Update]
+  }
+  deriving (Show, Eq, Generic)
+
+makeLenses ''LongPollResponse
+
+instance FromJSON LongPollResponse where
+  parseJSON (Object v) = LongPollResponse
+    <$> v .: "ts"
+    <*> v .: "updates"
+  parseJSON _ = mzero
