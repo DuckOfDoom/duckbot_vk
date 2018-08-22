@@ -3,6 +3,7 @@ module Bot
   ) where
 
 import Bot.Config      (Config)
+import Bot.Handler     as Handler (handle)
 import Bot.LongPolling (startLongPolling)
 import Bot.Server      (runServer)
 import Bot.Types       (Env(..))
@@ -18,7 +19,7 @@ startBot = do
 
   mapM_ startInNewThread
     [ runServer
-    , startLongPolling
+    , startLongPolling Handler.handle
     ]
 
   loop
