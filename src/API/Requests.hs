@@ -4,6 +4,7 @@
 module API.Requests
   ( getLongPollingServer
   , longPoll
+  , sendMessage
   , parseResponse -- needed for testing
   ) where
 
@@ -17,9 +18,12 @@ import Bot.Types    (Bot, config)
 import Data.Aeson   (decode)
 import Network.Wreq (param)
 
+import System.Random (randomIO)
+
+-- TODO: import as qualified Log and rename functions
 import Service.Logging     (logError)
-import Service.UrlComposer as Url (getLongPollServer, mkLongPollServerUrl)
-import Service.Wreq        (getWith)
+import qualified Service.UrlComposer as Url (messagesGetLongPollServer, messagesSend, mkLongPollServerUrl)
+import qualified Service.Wreq as Wreq (getWith, postWith)
 
 import Data.ByteString.Lazy as LBS
 import Data.Text.Encoding   as T
@@ -29,17 +33,19 @@ import NeatInterpolation
 getLongPollingServer :: Bot (Maybe LongPollServerSettings)
 getLongPollingServer = do
   lp_version <- (^. (config . longPollVersion)) <$> ask
-  json <- getWith Url.getLongPollServer (patch lp_version)
-  maybe (pure Nothing) (parse Url.getLongPollServer) json
+  let url = Url.messagesGetLongPollServer
+  json <- Wreq.getWith url (patch lp_version)
+  maybe (pure Nothing) (parse url) json
     where
       patch ver o = o & param "lp_version" .~ [ver]
 
 longPoll :: LongPollServerSettings -> Bot (Maybe LongPollResponse)
 longPoll settings = do
   version <- (^. (config . longPollVersion)) <$> ask
-  let serverUrl = Url.mkLongPollServerUrl (settings ^. server)
-  json <- getWith serverUrl (patch version)
-  maybe (pure Nothing) (parse serverUrl) json
+  let url = Url.mkLongPollServerUrl (settings ^. server)
+  json <- Wreq.getWith url (patch version)
+  logError $ "JSON: " <> showT json
+  maybe (pure Nothing) (parse url) json
     where
        -- https://vk.com/dev/using_longpoll
       patch version o = o
@@ -49,6 +55,20 @@ longPoll settings = do
          & param "version" .~ [version]
          & param "key" .~ [settings ^. key]
          & param "ts" .~ [showT $ settings ^. ts]
+
+sendMessage :: Integer -> Text -> Bot (Maybe Error)
+sendMessage userId msg = do
+  let url = Url.messagesSend
+  -- rand <- lift $ (randomIO :: IO Integer)
+  result <- Wreq.getWith url patch -- $ showT rand)
+  logError $ showT result
+  maybe (pure Nothing) (parse url) result
+    where 
+      patch o = o
+        & param "user_id" .~ [showT userId]
+        & param "peer_id" .~ [showT userId]
+        & param "message" .~ [msg]
+        -- & param "random_id" .~ [r]
 
 parse :: FromJSON a => Text -> LBS.ByteString -> Bot (Maybe a)
 parse methodName bs = case parseResponse bs of

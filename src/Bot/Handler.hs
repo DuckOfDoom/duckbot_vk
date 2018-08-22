@@ -3,14 +3,17 @@ module Bot.Handler
   )
   where
 
-import API.Types.Update
+import API.Types.Update (Update(..), fromUser, text)
+import qualified API.Requests as API (sendMessage)
 import Bot.Types
 import BotPrelude hiding (handle)
 import Service.Logging
 
 handle :: Update -> Bot ()
-handle u = do
-  logInfo $ "Handler. Received Update: " <> showT u
+handle m@Message{..} = do
+  logInfo $ "Handler. Received Update: " <> showT m
+  API.sendMessage _fromUser ("Don't you '" <> _text <> "' on me!")
   pure ()
+handle Undefined = pure ()
 
   

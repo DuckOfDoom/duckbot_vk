@@ -1,10 +1,10 @@
-{-# LANGUAGE DeriveGeneric         #-}
-{-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE DeriveGeneric          #-}
+{-# LANGUAGE DuplicateRecordFields  #-}
+{-# LANGUAGE TemplateHaskell        #-}
 
-{-# LANGUAGE MultiParamTypeClasses       #-}
-{-# LANGUAGE FunctionalDependencies       #-}
-{-# LANGUAGE FlexibleInstances       #-}
+{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE MultiParamTypeClasses  #-}
 
 {-# OPTIONS_GHC -fno-warn-partial-type-signatures #-}
 
@@ -34,9 +34,9 @@ parseResponse responseParser (Object o) =
 parseResponse _ _ = mzero
 
 data LongPollServerSettings = LongPollServerSettings
-  { _server    :: Text
-  , _key       :: Text
-  , _ts :: Integer
+  { _server :: Text
+  , _key    :: Text
+  , _ts     :: Integer
   }
   deriving (Eq, Generic)
 

@@ -32,7 +32,7 @@ instance HasWreqOptions Env where
     & param "v"            .~ [e ^. (config . apiVersion)]
 
 class (MonadIO m, MonadReader Env m) => MonadWreq m
-instance MonadWreq Bot
+instance MonadWreq Bot where
 
 getWith :: (MonadWreq m) => Text -> (Options -> Options) -> m (Maybe LBS.ByteString)
 getWith url patch = do
@@ -44,8 +44,7 @@ postWith url patch postable = do
  opts <- patch . getOptions <$> ask
  runMaybeT $ handleException ("POST " <> url) (Wreq.postWith opts (T.unpack url) postable)
 
-handleException
- :: (MonadWreq m)
+handleException :: (MonadWreq m)
  => Text
  -> IO (Wreq.Response LBS.ByteString)
  -> MaybeT m LBS.ByteString

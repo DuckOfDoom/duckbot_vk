@@ -1,7 +1,7 @@
-{-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE DeriveGeneric          #-}
+{-# LANGUAGE TemplateHaskell        #-}
 
-module API.Types.Update 
+module API.Types.Update
   ( Update(..)
   , fromUser
   , text

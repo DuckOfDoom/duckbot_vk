@@ -1,15 +1,19 @@
 {-# LANGUAGE QuasiQuotes #-}
 
 module Service.UrlComposer
-  ( getLongPollServer
+  ( messagesGetLongPollServer
+  , messagesSend
   , mkLongPollServerUrl
   ) where
 
 import BotPrelude
 import NeatInterpolation (text)
 
-getLongPollServer :: Text
-getLongPollServer = composeApi "messages.getLongPollServer"
+messagesGetLongPollServer :: Text
+messagesGetLongPollServer = composeApi "messages.getLongPollServer"
+
+messagesSend :: Text
+messagesSend = composeApi "messages.send"
 
 mkLongPollServerUrl :: Text -> Text
 mkLongPollServerUrl server = "https://" <> server

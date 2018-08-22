@@ -4,7 +4,7 @@ module BotPrelude
   , module BotPrelude
   ) where
 
-import Control.Lens as RE (makeLenses, makePrisms, makeFieldsNoPrefix, (%~), (.~), (?~), (^.),
+import Control.Lens as RE (makeLenses, makePrisms, makeFields, makeFieldsNoPrefix, (%~), (.~), (?~), (^.),
                            (^..), (^?), _1, _2, _3, _4, _Just, _Nothing)
 import Data.Aeson   as RE (FromJSON, ToJSON, Value(..), object, parseJSON,
                            toJSON, withObject, withScientific, (.:), (.:?), (.=))
