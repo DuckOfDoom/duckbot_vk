@@ -10,20 +10,18 @@ module API.Requests
 
 import BotPrelude
 
-import API.Types (Error(..), LongPollResponse(..), LongPollServerSettings(..),
-                  Update(..), key, prettifyError, server, ts)
+import API.Types (Error(..), LongPollResponse(..), LongPollServerSettings(..), key, server, ts, MessageId(..))
+import qualified API.Types.Utils as Utils (prettifyError)
 
 import Bot.Config   (longPollVersion)
 import Bot.Types    (Bot, config)
 import Data.Aeson   (decode)
 import Network.Wreq (param)
 
-import System.Random (randomIO)
-
 -- TODO: import as qualified Log and rename functions
 import Service.Logging     (logError)
 import qualified Service.UrlComposer as Url (messagesGetLongPollServer, messagesSend, mkLongPollServerUrl)
-import qualified Service.Wreq as Wreq (getWith, postWith)
+import qualified Service.Wreq as Wreq (getWith)
 
 import Data.ByteString.Lazy as LBS
 import Data.Text.Encoding   as T
@@ -56,7 +54,7 @@ longPoll settings = do
          & param "key" .~ [settings ^. key]
          & param "ts" .~ [showT $ settings ^. ts]
 
-sendMessage :: Integer -> Text -> Bot (Maybe Error)
+sendMessage :: Integer -> Text -> Bot (Maybe MessageId)
 sendMessage userId msg = do
   let url = Url.messagesSend
   -- rand <- lift $ (randomIO :: IO Integer)
@@ -78,7 +76,7 @@ parse methodName bs = case parseResponse bs of
           ${_json}|]
         pure Nothing
     Left e@Error{..} -> do
-        let source = prettifyError e
+        let source = Utils.prettifyError e
         logError [text|'Request ${methodName}'
           Received error:
           ${source}|]

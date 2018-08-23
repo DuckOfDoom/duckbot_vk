@@ -3,10 +3,9 @@ module Bot.LongPolling
   ) where
 
 import API.Requests    (getLongPollingServer, longPoll)
-import API.Types       (LongPollResponse, LongPollServerSettings, Update, key,
-                        server, ts, updates)
+import API.Types       (LongPollServerSettings, Update, ts, updates)
 import Bot.Types       (Bot)
-import BotPrelude
+import BotPrelude      hiding (handle)
 import Service.Logging (logError, logInfo)
 
 startLongPolling :: (Update -> Bot ()) -> Bot ()

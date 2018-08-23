@@ -4,17 +4,21 @@ module BotPrelude
   , module BotPrelude
   ) where
 
-import Control.Lens as RE (makeLenses, makePrisms, makeFields, makeFieldsNoPrefix, (%~), (.~), (?~), (^.),
-                           (^..), (^?), _1, _2, _3, _4, _Just, _Nothing)
-import Data.Aeson   as RE (FromJSON, ToJSON, Value(..), object, parseJSON,
-                           toJSON, withObject, withScientific, (.:), (.:?), (.=))
-
+import Control.Lens        as RE (makeFields, makeFieldsNoPrefix, makeLenses, makeClassy,
+                                  makePrisms, (%~), (.~), (?~), (^.), (^..),
+                                  (^?), _1, _2, _3, _4, _Just, _Nothing)
+import Data.Aeson          as RE (FromJSON, ToJSON, Value(..), object,
+                                  parseJSON, toJSON, withObject, withScientific,
+                                  (.:), (.:?), (.=))
+import Data.Aeson.Types    as RE (Parser)
 import Data.HashMap.Strict as RE (HashMap)
+
+import Control.Concurrent.MVar as RE ()
 
 import Data.Time
 import Protolude hiding (print)
 
-import qualified Data.Text            as T
+import qualified Data.Text as T
 
 --import Data.List as RE
 --  (lookup, nub)

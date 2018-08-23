@@ -6,8 +6,6 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
 
-{-# OPTIONS_GHC -fno-warn-partial-type-signatures #-}
-
 module API.Types.LongPolling
   ( LongPollServerSettings(..)
   , server
@@ -18,20 +16,13 @@ module API.Types.LongPolling
   )
 where
 
-import qualified Data.HashMap.Strict as HM
 import qualified Data.Text           as T
 
-import API.Types.Update
+import API.Types.Update (Update)
+import qualified API.Types.Utils as Utils (parseResponse)
+
 import BotPrelude
 import GHC.Show         (Show(..))
-
--- every response is in nested "response" object
-parseResponse :: MonadPlus m => (_ -> m a) -> Value -> m a
-parseResponse responseParser (Object o) =
-  case head $ HM.toList o of
-    Just ("response", Object v) -> responseParser v
-    _                           -> mzero
-parseResponse _ _ = mzero
 
 data LongPollServerSettings = LongPollServerSettings
   { _server :: Text
@@ -43,11 +34,14 @@ data LongPollServerSettings = LongPollServerSettings
 makeFieldsNoPrefix ''LongPollServerSettings
 
 instance FromJSON LongPollServerSettings where
-  parseJSON = parseResponse $ \v ->
-    LongPollServerSettings
-        <$> v .: "server"
-        <*> v .: "key"
-        <*> v .: "ts"
+  parseJSON = Utils.parseResponse parseSettings
+    where
+      parseSettings (Object o) = 
+        LongPollServerSettings
+            <$> o .: "server"
+            <*> o .: "key"
+            <*> o .: "ts"
+      parseSettings _ = mzero
 
 instance ToJSON LongPollServerSettings
 
