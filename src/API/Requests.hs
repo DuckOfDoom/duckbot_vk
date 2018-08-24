@@ -42,7 +42,6 @@ longPoll settings = do
   version <- (^. (config . longPollVersion)) <$> ask
   let url = Url.mkLongPollServerUrl (settings ^. server)
   json <- Wreq.getWith url (patch version)
-  logError $ "JSON: " <> showT json
   maybe (pure Nothing) (parse url) json
     where
        -- https://vk.com/dev/using_longpoll
@@ -59,7 +58,6 @@ sendMessage userId msg = do
   let url = Url.messagesSend
   -- rand <- lift $ (randomIO :: IO Integer)
   result <- Wreq.getWith url patch -- $ showT rand)
-  logError $ showT result
   maybe (pure Nothing) (parse url) result
     where 
       patch o = o

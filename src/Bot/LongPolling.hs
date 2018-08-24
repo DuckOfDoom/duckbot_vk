@@ -5,10 +5,12 @@ module Bot.LongPolling
 import API.Requests    (getLongPollingServer, longPoll)
 import API.Types       (LongPollServerSettings, Update, ts, updates)
 import Bot.Types       (Bot)
+import Bot.Handler     (HandlerState(..))
 import BotPrelude      hiding (handle)
+
 import Service.Logging (logError, logInfo)
 
-startLongPolling :: (Update -> StateT Integer Bot ()) -> Bot ()
+startLongPolling :: (Update -> StateT HandlerState Bot ()) -> Bot ()
 startLongPolling handle = do
   logInfo "Starting long polling..."
   initialSettings <- getLongPollingServer
@@ -18,10 +20,10 @@ startLongPolling handle = do
     where
       run :: LongPollServerSettings -> Bot ()
       run s = do
-        _ <- runStateT (mkRequest s) 0 
+        _ <- runStateT (mkRequest s) (HandlerState 0)
         pure ()
 
-      mkRequest :: LongPollServerSettings -> StateT Integer Bot ()
+      mkRequest :: LongPollServerSettings -> StateT HandlerState Bot ()
       mkRequest s = do
         res <- lift $ longPoll s
         case res of

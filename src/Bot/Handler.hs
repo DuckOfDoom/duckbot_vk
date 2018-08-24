@@ -1,5 +1,9 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Bot.Handler
-  ( handle
+  ( UpdateHandler
+  , HandlerState(..)
+  , handle
   )
   where
 
@@ -11,13 +15,30 @@ import Bot.Types (Bot)
 import BotPrelude hiding (handle)
 import Service.Logging (logInfo)
 
-handle :: Update -> StateT Integer Bot ()
+type UpdateHandler = Update -> StateT HandlerState Bot()
+
+data HandlerState = HandlerState
+  { _lastSentMessageId :: Integer
+  }
+  deriving (Show)
+
+makeLenses ''HandlerState
+
+handle :: UpdateHandler
 handle m@Message{..} = do
+  -- TODO: Rewrite this stuff using Prisms
   logInfo $ "Handler. Received Message: " <> showT m
-  lastSentMessage <- get 
+  lastSent <- getLastSentId
   -- Ignore my own updates
-  when (_messageId /= lastSentMessage) $ do
+  when (_messageId /= lastSent) $ do
     mId <- lift $ API.sendMessage _fromUser ("Don't you '" <> _text <> "' on me!")
-    put $ maybe 0 getId mId
+    putLastSentId (maybe 0 getId mId)
+    where
+      getLastSentId :: StateT HandlerState Bot Integer
+      getLastSentId = get >>= (\st -> pure $ st ^. lastSentMessageId)
+
+      putLastSentId :: Integer -> StateT HandlerState Bot ()
+      putLastSentId id = get >>= (\st -> pure $ st & lastSentMessageId .~ id) >>= put 
+
 handle Undefined = pure ()
   
