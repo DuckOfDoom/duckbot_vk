@@ -16,8 +16,6 @@ module API.Types.LongPolling
   )
 where
 
-import qualified Data.Text           as T
-
 import API.Types.Update (Update)
 import qualified API.Types.Utils as Utils (parseResponse)
 
@@ -29,7 +27,7 @@ data LongPollServerSettings = LongPollServerSettings
   , _key    :: Text
   , _ts     :: Integer
   }
-  deriving (Eq, Generic)
+  deriving (Show, Eq, Generic)
 
 makeFieldsNoPrefix ''LongPollServerSettings
 
@@ -44,14 +42,6 @@ instance FromJSON LongPollServerSettings where
       parseSettings _ = mzero
 
 instance ToJSON LongPollServerSettings
-
-instance Show LongPollServerSettings where
-  show lps = T.unpack $ mconcat
-   [ "Server: '" , lps ^. server
-   , "'\nKey: '" , lps ^. key
-   , "'\nTs: '"  , showT $ lps ^. ts
-   , "'"
-   ]
 
 data LongPollResponse = LongPollResponse
   { _ts      :: Integer

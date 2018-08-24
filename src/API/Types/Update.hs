@@ -3,10 +3,10 @@
 
 module API.Types.Update
   ( Update(..)
-  , messageId
-  , fromUser
-  , text
-  , timestamp
+  -- , messageId
+  -- , fromUser
+  -- , text
+  -- , timestamp
   )
 where
 
@@ -17,12 +17,12 @@ data Update
    | Message
    { _messageId :: Integer
    , _fromUser  :: Integer
-   , _timestamp :: Integer 
+   , _timestamp :: Integer
    , _text      :: Text
    }
   deriving (Show, Eq, Generic)
 
-makeLenses ''Update
+makePrisms ''Update
 
 instance FromJSON Update where
   parseJSON (Array a) = do

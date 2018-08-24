@@ -6,16 +6,18 @@ module Bot.Handler
 import API.Types.Update (Update(..))
 import API.Types.Message (getId)
 import qualified API.Requests as API (sendMessage)
-import Bot.Types
+
+import Bot.Types (Bot)
 import BotPrelude hiding (handle)
-import Service.Logging
+import Service.Logging (logInfo)
 
-handle :: Update -> Bot ()
+handle :: Update -> StateT Integer Bot ()
 handle m@Message{..} = do
-  logInfo $ "Handler. Received Update: " <> showT m
-  mId <- API.sendMessage _fromUser ("Don't you '" <> _text <> "' on me!")
-  logInfo $ "Handler. Sent message: " <> showT mId
-  pure ()
+  logInfo $ "Handler. Received Message: " <> showT m
+  lastSentMessage <- get 
+  -- Ignore my own updates
+  when (_messageId /= lastSentMessage) $ do
+    mId <- lift $ API.sendMessage _fromUser ("Don't you '" <> _text <> "' on me!")
+    put $ maybe 0 getId mId
 handle Undefined = pure ()
-
   
