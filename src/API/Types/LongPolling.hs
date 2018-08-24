@@ -13,14 +13,16 @@ module API.Types.LongPolling
   , LongPollResponse(..)
   , ts
   , updates
+  , Failed
+  , failCode
   )
 where
 
-import API.Types.Update (Update)
-import qualified API.Types.Utils as Utils (parseResponse)
+import           API.Types.Update (Update)
+import qualified API.Types.Utils  as Utils (parseNested)
 
 import BotPrelude
-import GHC.Show         (Show(..))
+import GHC.Show   (Show(..))
 
 data LongPollServerSettings = LongPollServerSettings
   { _server :: Text
@@ -32,9 +34,9 @@ data LongPollServerSettings = LongPollServerSettings
 makeFieldsNoPrefix ''LongPollServerSettings
 
 instance FromJSON LongPollServerSettings where
-  parseJSON = Utils.parseResponse parseSettings
+  parseJSON = Utils.parseNested "response" parseSettings
     where
-      parseSettings (Object o) = 
+      parseSettings (Object o) =
         LongPollServerSettings
             <$> o .: "server"
             <*> o .: "key"
@@ -56,3 +58,16 @@ instance FromJSON LongPollResponse where
     <$> v .: "ts"
     <*> v .: "updates"
   parseJSON _ = mzero
+
+data Failed = Failed
+ { _failCode :: Integer
+ , _ts       :: Maybe Integer
+ }
+
+instance FromJSON Failed where
+  parseJSON (Object v) = Failed
+    <$> v .:  "failed"
+    <*> v .:? "ts"
+  parseJSON _ = mzero
+
+makeFieldsNoPrefix ''Failed

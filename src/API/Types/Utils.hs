@@ -2,7 +2,7 @@
 
 module API.Types.Utils
   ( prettifyError
-  , parseResponse
+  , parseNested
   )
   where
 
@@ -25,10 +25,11 @@ prettifyError e = E.decodeUtf8 $ LBS.toStrict $ encodePretty' conf e
       , confTrailingNewline = False
       }
 
--- every response is in nested "response" object
-parseResponse :: (Value -> Parser a) -> Value -> Parser a
-parseResponse responseParser (Object o) =
+parseNested :: Text -> (Value -> Parser a) -> Value -> Parser a
+parseNested expected nestedParser (Object o) =
   case head $ HM.toList o of
-    Just ("response", v) -> responseParser v
-    _                    -> mzero
-parseResponse _ _ = mzero
+    Just (actual, v) 
+      | expected == actual -> nestedParser v
+      | otherwise -> mzero
+    _             -> mzero
+parseNested _ _ _ = mzero

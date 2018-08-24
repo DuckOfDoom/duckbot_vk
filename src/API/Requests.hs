@@ -10,7 +10,7 @@ module API.Requests
 
 import BotPrelude
 
-import API.Types (Error(..), LongPollResponse(..), LongPollServerSettings(..), key, server, ts, MessageId(..))
+import API.Types (Error(..), LongPollResponse(..), Failed, LongPollServerSettings(..), key, server, ts, MessageId(..))
 import qualified API.Types.Utils as Utils (prettifyError)
 
 import Bot.Config   (longPollVersion)
@@ -37,12 +37,19 @@ getLongPollingServer = do
     where
       patch ver o = o & param "lp_version" .~ [ver]
 
-longPoll :: LongPollServerSettings -> Bot (Maybe LongPollResponse)
+longPoll :: LongPollServerSettings -> Bot (Either Failed (Maybe LongPollResponse))
 longPoll settings = do
   version <- (^. (config . longPollVersion)) <$> ask
   let url = Url.mkLongPollServerUrl (settings ^. server)
   json <- Wreq.getWith url (patch version)
-  maybe (pure Nothing) (parse url) json
+
+  failed <- maybe (pure Nothing) (parse url) json :: _ (Maybe Failed)
+
+  case failed of 
+    Just f -> pure $ Left f
+    Nothing -> 
+      pure $ Right $ do
+        maybe (pure Nothing) (parse url) json
     where
        -- https://vk.com/dev/using_longpoll
       patch version o = o
