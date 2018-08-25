@@ -5,7 +5,7 @@ module API.Requests
   ( getLongPollingServer
   , longPoll
   , sendMessage
-  , parseResponse -- needed for testing
+  , eitherParse -- needed for testing
   ) where
 
 import BotPrelude
@@ -19,7 +19,7 @@ import Data.Aeson   (decode)
 import Network.Wreq (param)
 
 -- TODO: import as qualified Log and rename functions
-import Service.Logging     (logError)
+import qualified Service.Logging as Log (logError)
 import qualified Service.UrlComposer as Url (messagesGetLongPollServer, messagesSend, mkLongPollServerUrl)
 import qualified Service.Wreq as Wreq (getWith)
 
@@ -42,14 +42,12 @@ longPoll settings = do
   version <- (^. (config . longPollVersion)) <$> ask
   let url = Url.mkLongPollServerUrl (settings ^. server)
   json <- Wreq.getWith url (patch version)
-
-  failed <- maybe (pure Nothing) (parse url) json :: _ (Maybe Failed)
-
+  failed <- maybe (pure Nothing) parseSilent json :: Bot (Maybe Failed)
   case failed of 
     Just f -> pure $ Left f
-    Nothing -> 
-      pure $ Right $ do
-        maybe (pure Nothing) (parse url) json
+    Nothing -> do
+        response <- maybe (pure Nothing) (parse url) json
+        pure $ Right response
     where
        -- https://vk.com/dev/using_longpoll
       patch version o = o
@@ -73,24 +71,19 @@ sendMessage userId msg = do
         & param "message" .~ [msg]
         -- & param "random_id" .~ [r]
 
+-- Parses with outputting protocol errors or parsing errors to log
 parse :: FromJSON a => Text -> LBS.ByteString -> Bot (Maybe a)
-parse methodName bs = case parseResponse bs of
-    Left ParsingError{..} -> do
-        logError [text|'Request: ${methodName}'
-          Failed to parse JSON:
-          ${_json}|]
-        pure Nothing
-    Left e@Error{..} -> do
-        let source = Utils.prettifyError e
-        logError [text|'Request ${methodName}'
-          Received error:
-          ${source}|]
-        pure Nothing
+parse methodName bs = case eitherParse bs of
+    Left e -> logError e methodName >> pure Nothing
     Right result -> pure $ Just result
 
-parseResponse :: FromJSON a => LBS.ByteString -> Either Error a
-parseResponse bs =
-    case (decode bs) :: Maybe Error of
+-- Parses without outputting anything
+parseSilent :: FromJSON a => LBS.ByteString -> Bot (Maybe a)
+parseSilent bs = pure $ rightToMaybe (eitherParse bs)
+
+eitherParse :: FromJSON a => LBS.ByteString -> Either Error a
+eitherParse bs =
+    case decode bs :: Maybe Error of
       Just err  -> Left err
       Nothing ->
         case decode bs of
@@ -98,3 +91,14 @@ parseResponse bs =
           Nothing -> Left parsingError
     where
       parsingError = ParsingError "Failed to parse JSON" (T.decodeUtf8 $ LBS.toStrict bs)
+
+logError :: Error -> Text -> Bot ()
+logError ParsingError{..} methodName = 
+  Log.logError [text|'Request: ${methodName}'
+    Failed to parse JSON:
+    ${_json}|]
+logError e@Error{..} methodName = do
+  let source = Utils.prettifyError e
+  Log.logError [text|'Request ${methodName}'
+    Received error:
+    ${source}|]

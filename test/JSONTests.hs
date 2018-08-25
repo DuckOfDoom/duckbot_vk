@@ -4,7 +4,7 @@ module JSONTests
 import API.Types  (Error(..), LongPollServerSettings(..))
 import BotPrelude
 
-import API.Requests         (parseResponse)
+import API.Requests         (eitherParse)
 import Data.HashMap.Strict  as HM (fromList)
 
 import Test.Hspec
@@ -15,9 +15,9 @@ run = --do
   hspec $
     describe "JSON parsing" $ do
       it "parses Error" $
-        (parseResponse errorJSON :: Either Error LongPollServerSettings) `shouldBe` Left (Error 100 "herp" [fromList [("herp", "derp")], fromList [("hey", "wat")]])
+        (eitherParse errorJSON :: Either Error LongPollServerSettings) `shouldBe` Left (Error 100 "herp" [fromList [("herp", "derp")], fromList [("hey", "wat")]])
       it "parses LongPollServerSettings" $
-        (parseResponse lpsRequestJSON :: Either Error LongPollServerSettings) `shouldBe` Right (LongPollServerSettings "keyValue" "serverValue" 100500)
+        (eitherParse lpsRequestJSON :: Either Error LongPollServerSettings) `shouldBe` Right (LongPollServerSettings "keyValue" "serverValue" 100500)
   where
     errorJSON = "{\"error\":{\"error_code\":100, \"error_msg\":\"herp\", \"request_params\": [{\"herp\":\"derp\"}, {\"hey\": \"wat\"}]}}"
     lpsRequestJSON = "{\"response\":{\"key\":\"keyValue\",\"server\":\"serverValue\",\"ts\":100500}}"

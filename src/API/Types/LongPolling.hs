@@ -13,8 +13,7 @@ module API.Types.LongPolling
   , LongPollResponse(..)
   , ts
   , updates
-  , Failed
-  , failCode
+  , Failed(..)
   )
 where
 
@@ -66,8 +65,6 @@ data Failed = Failed
 
 instance FromJSON Failed where
   parseJSON (Object v) = Failed
-    <$> v .:  "failed"
-    <*> v .:? "ts"
+    <$> v .: "failed"
+    <*> v .: "ts"
   parseJSON _ = mzero
-
-makeFieldsNoPrefix ''Failed
