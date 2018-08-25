@@ -7,6 +7,7 @@ module Bot.Config
   , apiVersion
   , longPollVersion
   , port
+  , creatorId
   , confirmationString
   ) where
 
@@ -17,6 +18,7 @@ data Config = Config
   , _apiVersion         :: Text
   , _longPollVersion    :: Text
   , _port               :: Int
+  , _creatorId          :: Maybe Integer
   , _confirmationString :: Maybe Text
   } deriving (Show, Generic)
 
@@ -28,4 +30,5 @@ instance FromJSON Config where
      <*> v .:  "api_version"
      <*> v .:  "long_poll_version"
      <*> v .:  "port"
+     <*> v .:  "creator_id"
      <*> v .:? "confirmation"
