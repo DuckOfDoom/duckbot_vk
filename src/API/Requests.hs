@@ -19,7 +19,7 @@ import Data.Aeson   (decode)
 import Network.Wreq (param)
 
 -- TODO: import as qualified Log and rename functions
-import qualified Service.Logging as Log (logError)
+import qualified Service.Logging as Log (error)
 import qualified Service.UrlComposer as Url (messagesGetLongPollServer, messagesSend, mkLongPollServerUrl)
 import qualified Service.Wreq as Wreq (getWith)
 
@@ -94,11 +94,11 @@ eitherParse bs =
 
 logError :: Error -> Text -> Bot ()
 logError ParsingError{..} methodName = 
-  Log.logError [text|'Request: ${methodName}'
+  Log.error [text|'Request: ${methodName}'
     Failed to parse JSON:
     ${_json}|]
 logError e@Error{..} methodName = do
   let source = Utils.prettifyError e
-  Log.logError [text|'Request ${methodName}'
+  Log.error [text|'Request ${methodName}'
     Received error:
     ${source}|]

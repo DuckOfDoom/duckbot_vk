@@ -12,7 +12,7 @@ import Network.Wai.Handler.Warp  (defaultSettings, runSettings, setPort)
 
 import qualified Data.ByteString.Lazy as LBS (fromStrict)
 
-import Service.Logging (logInfo)
+import qualified Service.Logging as Log (info)
 
 import Data.Text.Encoding (encodeUtf8)
 
@@ -23,7 +23,7 @@ runServer = do
     port' = env ^. (config . port)
     settings = setPort port' defaultSettings
 
-  logInfo $ "Starting server on port " <> showT port'
+  Log.info $ "Starting server on port " <> showT port'
   lift $ runSettings settings (mkApp env)
 
 mkApp :: Env -> Application

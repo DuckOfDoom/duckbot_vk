@@ -8,13 +8,13 @@ import Bot.Types       (Bot)
 import Bot.Handler     (HandlerState(..))
 import BotPrelude      hiding (handle)
 
-import Service.Logging (logError, logInfo)
+import qualified Service.Logging as Log (error, info)
 
 startLongPolling :: (Update -> StateT HandlerState Bot ()) -> Bot ()
 startLongPolling handle = do
-  logInfo "Connecting to LongPoll server..."
+  Log.info "Connecting to LongPoll server..."
   initialSettings <- getLongPollingServer
-  logInfo $ "Got initial settings:\n" <> showT initialSettings
+  Log.info $ "Got initial settings:\n" <> showT initialSettings
   maybe (pure ()) run initialSettings
   pure ()
     where
@@ -28,24 +28,24 @@ startLongPolling handle = do
         res <- lift $ longPoll settings
         case res of
           Left (Failed 1 (Just newTs)) -> do
-            logInfo "Got failed:1, making request with new TS..."
+            Log.info "Got failed:1, making request with new TS..."
             mkRequest (settings & ts .~ newTs) 
           Left (Failed 2 _) -> do
-            logInfo "Got failed:2, reconnecting to long poll server..."
+            Log.info "Got failed:2, reconnecting to long poll server..."
             lift $ startLongPolling handle
           Left (Failed 3 _) -> do
-            logInfo "Got failed:2, reconnecting to long poll server..."
+            Log.info "Got failed:2, reconnecting to long poll server..."
             lift $ startLongPolling handle
           Left (Failed 4 _) -> do 
-            logError "Got invalid version respone ('failed:4'). Please fix long poll verson!"
+            Log.error "Got invalid version respone ('failed:4'). Please fix long poll verson!"
             pure ()
 
           Right Nothing -> do
-            logError "Didn't get any result on long polling! Retrying in 5 seconds..."
+            Log.error "Didn't get any result on long polling! Retrying in 5 seconds..."
             liftIO $ threadDelay 5000000
             mkRequest settings
           Right (Just u) -> do 
             mapM_ handle (u ^. updates)
             mkRequest (settings & ts .~ (u ^. ts))
 
-          _ -> logError "Got unknown long poll result!" >> pure ()
+          _ -> Log.error "Got unknown long poll result!" >> pure ()

@@ -18,7 +18,7 @@ import Network.Wreq.Types   (Postable)
 import qualified Data.Text    as T (unpack)
 import qualified Network.Wreq as Wreq (Response, getWith, postWith)
 
-import Service.Logging (logError)
+import qualified Service.Logging as Log (error)
 
 import Control.Monad.Trans.Maybe (MaybeT, runMaybeT)
 import NeatInterpolation         (text)
@@ -53,7 +53,7 @@ handleException source action = do
   case result of
     Left ex -> do
       let exMessage = showT ex
-      logError [text|Caught exception when trying to ${source}:
+      Log.error [text|Caught exception when trying to ${source}:
       ${exMessage}|]
       mzero
     Right r -> pure (r ^. responseBody)

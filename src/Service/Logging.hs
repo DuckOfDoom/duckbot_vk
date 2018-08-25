@@ -1,8 +1,8 @@
 {-# LANGUAGE RankNTypes #-}
 
 module Service.Logging
-  ( logInfo
-  , logError
+  ( info
+  , error
   , HasLog
   ) where
 
@@ -21,12 +21,11 @@ instance HasLog Env where
 type LogFunc env m = (MonadReader env m, HasLog env, MonadIO m)
              => Text
              -> m ()
-logInfo :: LogFunc env m
-logInfo = log "INFO:"
+info :: LogFunc env m
+info = log "INFO:"
 
-logError :: LogFunc env m
-logError = log "ERROR:"
-
+error :: LogFunc env m
+error = log "ERROR:"
 log :: (MonadReader env m, HasLog env, MonadIO m)
              => Text -- prefix
              -> Text -- message

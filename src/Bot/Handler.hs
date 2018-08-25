@@ -13,7 +13,7 @@ import qualified API.Requests as API (sendMessage)
 
 import Bot.Types (Bot)
 import BotPrelude hiding (handle)
-import Service.Logging (logInfo)
+import qualified Service.Logging as Log (info)
 
 type UpdateHandler = Update -> StateT HandlerState Bot()
 
@@ -27,7 +27,7 @@ makeLenses ''HandlerState
 handle :: UpdateHandler
 handle m@Message{..} = do
   -- TODO: Rewrite this stuff using Prisms
-  logInfo $ "Handler. Received Message: " <> showT m
+  Log.info $ "Handler. Received Message: " <> showT m
   lastSent <- getLastSentId
   -- Ignore my own updates
   when (_messageId /= lastSent) $ do
