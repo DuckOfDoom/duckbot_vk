@@ -66,5 +66,5 @@ data Failed = Failed
 instance FromJSON Failed where
   parseJSON (Object v) = Failed
     <$> v .: "failed"
-    <*> v .: "ts"
+    <*> v .:? "ts"
   parseJSON _ = mzero
