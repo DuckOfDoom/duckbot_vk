@@ -2,7 +2,7 @@ module Bot.Server
   ( runServer
   ) where
 
-import Bot.Config                (confirmationString, port)
+import Bot.Config                (port)
 import Bot.Types                 (Bot, Env, config)
 import BotPrelude
 import Network.HTTP.Types.Status (status200, status404)
@@ -31,7 +31,7 @@ mkApp env request respond =
   let path = rawPathInfo request in
   respond $ case path of
     "/"             -> index
-    "/confirmation" -> confirm $ env ^. (config . confirmationString)
+    -- "/confirmation" -> confirm $ env ^. (config . confirmationString)
     _               -> response404 path
 
 index :: Response

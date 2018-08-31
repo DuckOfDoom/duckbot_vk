@@ -7,19 +7,37 @@ module Bot.Config
   , apiVersion
   , longPollVersion
   , port
-  , creatorId
-  , confirmationString
+  , admins
+  , riotConfig
+  , RiotGamesAPIConfig
+  , apiKey
+  , accountId
+  , summonerId
   ) where
 
 import BotPrelude
+
+data RiotGamesAPIConfig = RiotGamesAPIConfig
+  { _apiKey :: Text
+  , _accountId :: Text
+  , _summonerId :: Text
+  } deriving (Show, Generic)
+
+makeLenses ''RiotGamesAPIConfig
+
+instance FromJSON RiotGamesAPIConfig where
+  parseJSON = withObject "Config" $ \v -> RiotGamesAPIConfig
+     <$> v .:  "api_key"
+     <*> v .:  "account_id"
+     <*> v .:  "summoner_id"
 
 data Config = Config
   { _accessToken        :: Text
   , _apiVersion         :: Text
   , _longPollVersion    :: Text
   , _port               :: Int
-  , _creatorId          :: Maybe Integer
-  , _confirmationString :: Maybe Text
+  , _admins             :: [Integer]
+  , _riotConfig :: Maybe RiotGamesAPIConfig
   } deriving (Show, Generic)
 
 makeLenses ''Config
@@ -30,5 +48,5 @@ instance FromJSON Config where
      <*> v .:  "api_version"
      <*> v .:  "long_poll_version"
      <*> v .:  "port"
-     <*> v .:  "creator_id"
-     <*> v .:? "confirmation"
+     <*> v .:  "admins"
+     <*> v .:? "riot_config" 
