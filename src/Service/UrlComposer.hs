@@ -19,4 +19,4 @@ mkLongPollServerUrl :: Text -> Text
 mkLongPollServerUrl server = "https://" <> server
 
 composeApi :: Text -> Text
-composeApi method = [text|https://VK.vk.com/method/${method}|]
+composeApi method = [text|https://api.vk.com/method/${method}|]
