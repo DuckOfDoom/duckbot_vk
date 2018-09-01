@@ -13,7 +13,7 @@ import BotPrelude
 import API.Types (Error(..), LongPollResponse(..), Failed, LongPollServerSettings(..), key, server, ts, MessageId(..))
 import qualified API.Types.Utils as Utils (prettifyError)
 
-import Bot.Config   (longPollVersion)
+import Bot.Config   (longPollVersion, accessToken, apiVersion)
 import Bot.Types    (Bot, config)
 import Data.Aeson   (decode)
 import Network.Wreq (param)
@@ -21,55 +21,62 @@ import Network.Wreq (param)
 -- TODO: import as qualified Log and rename functions
 import qualified Service.Logging as Log (error)
 import qualified Service.UrlComposer as Url (messagesGetLongPollServer, messagesSend, mkLongPollServerUrl)
-import qualified Service.Wreq as Wreq (getWith)
+import qualified Service.Wreq as Wreq (getWith, defaults, Options)
 
 import Data.ByteString.Lazy as LBS
 import Data.Text.Encoding   as T
 
 import NeatInterpolation
 
+defaultOpts :: Bot Wreq.Options
+defaultOpts = do
+  env <- ask 
+  pure $ Wreq.defaults
+    & param "access_token" .~ [env ^. (config . accessToken)]
+    & param "v"            .~ [env ^. (config . apiVersion)]
+
 getLongPollingServer :: Bot (Maybe LongPollServerSettings)
 getLongPollingServer = do
   lp_version <- (^. (config . longPollVersion)) <$> ask
   let url = Url.messagesGetLongPollServer
-  json <- Wreq.getWith url (patch lp_version)
+
+  opts <- defaultOpts
+   <&> param "lp_version" .~ [lp_version] 
+
+  json <- Wreq.getWith url opts
   maybe (pure Nothing) (parse url) json
-    where
-      patch ver o = o & param "lp_version" .~ [ver]
 
 longPoll :: LongPollServerSettings -> Bot (Either Failed (Maybe LongPollResponse))
 longPoll settings = do
   version <- (^. (config . longPollVersion)) <$> ask
   let url = Url.mkLongPollServerUrl (settings ^. server)
-  json <- Wreq.getWith url (patch version)
+
+  opts <- defaultOpts 
+    <&> param "act" .~ ["a_check"]
+    <&> param "mode" .~ ["2"]
+    <&> param "wait" .~ ["25"]
+    <&> param "version" .~ [version]
+    <&> param "key" .~ [settings ^. key]
+    <&> param "ts" .~ [showT $ settings ^. ts]
+
+  json <- Wreq.getWith url opts
   failed <- maybe (pure Nothing) parseSilent json :: Bot (Maybe Failed)
   case failed of 
     Just f -> pure $ Left f
     Nothing -> do
         response <- maybe (pure Nothing) (parse url) json
         pure $ Right response
-    where
-       -- https://vk.com/dev/using_longpoll
-      patch version o = o
-         & param "act" .~ ["a_check"]
-         & param "mode" .~ ["2"]
-         & param "wait" .~ ["25"]
-         & param "version" .~ [version]
-         & param "key" .~ [settings ^. key]
-         & param "ts" .~ [showT $ settings ^. ts]
 
 sendMessage :: Integer -> Text -> Bot (Maybe MessageId)
 sendMessage userId msg = do
   let url = Url.messagesSend
-  -- rand <- lift $ (randomIO :: IO Integer)
-  result <- Wreq.getWith url patch -- $ showT rand)
+  opts <- defaultOpts 
+    <&> param "user_id" .~ [showT userId]
+    <&> param "peer_id" .~ [showT userId]
+    <&> param "message" .~ [msg]
+ 
+  result <- Wreq.getWith url opts 
   maybe (pure Nothing) (parse url) result
-    where 
-      patch o = o
-        & param "user_id" .~ [showT userId]
-        & param "peer_id" .~ [showT userId]
-        & param "message" .~ [msg]
-        -- & param "random_id" .~ [r]
 
 -- Parses with outputting protocol errors or parsing errors to log
 parse :: FromJSON a => Text -> LBS.ByteString -> Bot (Maybe a)

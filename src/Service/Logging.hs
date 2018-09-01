@@ -3,7 +3,7 @@
 module Service.Logging
   ( info
   , error
-  , HasLog
+  , processLog
   ) where
 
 import Bot.Types            (Env, logger)
@@ -11,14 +11,19 @@ import BotPrelude           hiding (log)
 import Control.Lens         ((^.))
 import Control.Monad.Reader (MonadIO, MonadReader, ask, liftIO)
 
-class HasLog a where
+processLog :: Text -> IO ()
+processLog t = -- do
+  -- appendFile "log.txt" t
+  putStrLn t
+
+class HasLogging a where
   getLog :: a -> (Text -> IO ())
 
-instance HasLog Env where
+instance HasLogging Env where
   getLog e = e ^. logger
 
 -- TODO: Make func work with (Show a)?
-type LogFunc env m = (MonadReader env m, HasLog env, MonadIO m)
+type LogFunc env m = (MonadReader env m, HasLogging env, MonadIO m)
              => Text
              -> m ()
 info :: LogFunc env m
@@ -26,7 +31,7 @@ info = log "INFO:"
 
 error :: LogFunc env m
 error = log "ERROR:"
-log :: (MonadReader env m, HasLog env, MonadIO m)
+log :: (MonadReader env m, HasLogging env, MonadIO m)
              => Text -- prefix
              -> Text -- message
              -> m ()

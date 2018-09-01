@@ -3,12 +3,15 @@ module Bot
   ) where
 
 import Bot.Config      (Config)
-import Bot.Handler     as Handler (handle)
 import Bot.LongPolling (startLongPolling)
 import Bot.Server      (runServer)
 import Bot.Types       (Env(..))
 import BotPrelude
 import Data.Aeson      (decodeFileStrict)
+
+import qualified Bot.Handler     as Handler (handle)
+
+import qualified Service.Logging as Logging (processLog)
 
 startBot :: IO ()
 startBot = do
@@ -29,7 +32,7 @@ initEnv = do
   config' <- readConfig
   pure $ Env
    { _config = config'
-   , _logger = putStrLn
+   , _logger = Logging.processLog
    }
    where
     readConfig :: IO Config

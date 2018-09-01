@@ -5,10 +5,10 @@
 module Service.Wreq
   ( getWith
   , postWith
+  , module Network.Wreq 
   ) where
 
-import Bot.Config           (accessToken, apiVersion)
-import Bot.Types            (Bot, Env, config)
+import Bot.Types            (Bot, Env)
 import BotPrelude
 import Control.Exception    (SomeException, try)
 import Data.ByteString.Lazy as LBS (ByteString)
@@ -23,25 +23,15 @@ import qualified Service.Logging as Log (error)
 import Control.Monad.Trans.Maybe (MaybeT, runMaybeT)
 import NeatInterpolation         (text)
 
-class HasWreqOptions a where
-  getOptions :: a -> Options
-
-instance HasWreqOptions Env where
-  getOptions e = defaults
-    & param "access_token" .~ [e ^. (config . accessToken)]
-    & param "v"            .~ [e ^. (config . apiVersion)]
-
 class (MonadIO m, MonadReader Env m) => MonadWreq m
 instance MonadWreq Bot where
 
-getWith :: (MonadWreq m) => Text -> (Options -> Options) -> m (Maybe LBS.ByteString)
-getWith url patch = do
-  opts <- patch . getOptions <$> ask
+getWith :: (MonadWreq m) => Text -> Options -> m (Maybe LBS.ByteString)
+getWith url opts = 
   runMaybeT $ handleException ("GET " <> url) (Wreq.getWith opts (T.unpack url))
 
-postWith :: (MonadWreq m, Postable a) => Text -> (Options -> Options) -> a -> m (Maybe LBS.ByteString)
-postWith url patch postable = do
- opts <- patch . getOptions <$> ask
+postWith :: (MonadWreq m, Postable a) => Text -> Options -> a -> m (Maybe LBS.ByteString)
+postWith url opts postable = 
  runMaybeT $ handleException ("POST " <> url) (Wreq.postWith opts (T.unpack url) postable)
 
 handleException :: (MonadWreq m)

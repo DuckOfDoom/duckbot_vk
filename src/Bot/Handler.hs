@@ -26,11 +26,10 @@ makeLenses ''HandlerState
 
 handle :: UpdateHandler
 handle m@Message{..} = do
-  -- TODO: Rewrite this stuff using Prisms
-  Log.info $ "Handler. Received Message: " <> showT m
   lastSent <- getLastSentId
   -- Ignore my own updates
   when (_messageId /= lastSent) $ do
+    Log.info $ "Handler. Received Message: " <> showT m
     mId <- lift $ API.sendMessage _fromUser ("Don't you '" <> _text <> "' on me!")
     putLastSentId (maybe 0 getId mId)
     where

@@ -14,7 +14,7 @@ import qualified Data.ByteString.Lazy as LBS (fromStrict)
 
 import qualified Service.Logging as Log (info)
 
-import Data.Text.Encoding (encodeUtf8)
+-- import Data.Text.Encoding (encodeUtf8)
 
 runServer :: Bot ()
 runServer = do
@@ -27,7 +27,7 @@ runServer = do
   lift $ runSettings settings (mkApp env)
 
 mkApp :: Env -> Application
-mkApp env request respond =
+mkApp _ request respond =
   let path = rawPathInfo request in
   respond $ case path of
     "/"             -> index
@@ -37,10 +37,10 @@ mkApp env request respond =
 index :: Response
 index = responseLBS status200 [] "This is index"
 
-confirm :: Maybe Text -> Response
-confirm = \case
-  Just t -> responseLBS status200 [] $ (LBS.fromStrict . encodeUtf8) t
-  Nothing -> responseLBS status200 [] "Error. No confirmation value set!"
+-- confirm :: Maybe Text -> Response
+-- confirm = \case
+--   Just t -> responseLBS status200 [] $ (LBS.fromStrict . encodeUtf8) t
+--   Nothing -> responseLBS status200 [] "Error. No confirmation value set!"
 
 response404 :: ByteString -> Response
 response404 = responseLBS status404 [] . LBS.fromStrict
