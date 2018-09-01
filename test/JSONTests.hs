@@ -1,10 +1,10 @@
 module JSONTests
   (run) where
 
-import API.Types  (Error(..), LongPollServerSettings(..))
+import VK.Types  (Error(..), LongPollServerSettings(..))
 import BotPrelude
 
-import API.Requests         (eitherParse)
+import VK.Requests         (eitherParse)
 import Data.HashMap.Strict  as HM (fromList)
 
 import Test.Hspec

@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveGeneric   #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module API.Types.Update
+module VK.Types.Update
   ( Update(..)
   -- , messageId
   -- , fromUser

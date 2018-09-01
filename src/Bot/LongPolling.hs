@@ -2,8 +2,8 @@ module Bot.LongPolling
   ( startLongPolling
   ) where
 
-import API.Requests    (getLongPollingServer, longPoll)
-import API.Types       (LongPollServerSettings, Update, ts, updates, Failed(..))
+import VK.Requests    (getLongPollingServer, longPoll)
+import VK.Types       (LongPollServerSettings, Update, ts, updates, Failed(..))
 import Bot.Types       (Bot)
 import Bot.Handler     (HandlerState(..))
 import BotPrelude      hiding (handle)

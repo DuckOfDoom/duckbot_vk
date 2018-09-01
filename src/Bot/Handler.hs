@@ -7,9 +7,9 @@ module Bot.Handler
   )
   where
 
-import API.Types.Update (Update(..))
-import API.Types.Message (getId)
-import qualified API.Requests as API (sendMessage)
+import VK.Types.Update (Update(..))
+import VK.Types.Message (getId)
+import qualified VK.Requests as VK (sendMessage)
 
 import Bot.Types (Bot)
 import BotPrelude hiding (handle)
@@ -30,7 +30,7 @@ handle m@Message{..} = do
   -- Ignore my own updates
   when (_messageId /= lastSent) $ do
     Log.info $ "Handler. Received Message: " <> showT m
-    mId <- lift $ API.sendMessage _fromUser ("Don't you '" <> _text <> "' on me!")
+    mId <- lift $ VK.sendMessage _fromUser ("Don't you '" <> _text <> "' on me!")
     putLastSentId (maybe 0 getId mId)
     where
       getLastSentId :: StateT HandlerState Bot Integer

@@ -6,7 +6,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
 
-module API.Types.LongPolling
+module VK.Types.LongPolling
   ( LongPollServerSettings(..)
   , server
   , key
@@ -17,8 +17,8 @@ module API.Types.LongPolling
   )
 where
 
-import           API.Types.Update (Update)
-import qualified API.Types.Utils  as Utils (parseNested)
+import           VK.Types.Update (Update)
+import qualified VK.Types.Utils  as Utils (parseNested)
 
 import BotPrelude
 import GHC.Show   (Show(..))

@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveGeneric   #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module API.Types.Error
+module VK.Types.Error
   ( Error(..)
   , code
   , msg

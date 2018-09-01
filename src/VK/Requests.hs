@@ -1,7 +1,7 @@
 {-# LANGUAGE QuasiQuotes     #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module API.Requests
+module VK.Requests
   ( getLongPollingServer
   , longPoll
   , sendMessage
@@ -10,8 +10,8 @@ module API.Requests
 
 import BotPrelude
 
-import API.Types (Error(..), LongPollResponse(..), Failed, LongPollServerSettings(..), key, server, ts, MessageId(..))
-import qualified API.Types.Utils as Utils (prettifyError)
+import VK.Types (Error(..), LongPollResponse(..), Failed, LongPollServerSettings(..), key, server, ts, MessageId(..))
+import qualified VK.Types.Utils as Utils (prettifyError)
 
 import Bot.Config   (longPollVersion, accessToken, apiVersion)
 import Bot.Types    (Bot, config)

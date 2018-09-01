@@ -1,11 +1,11 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module API.Types.Message
+module VK.Types.Message
   ( MessageId(..)
   )
   where
 
-import qualified API.Types.Utils as Utils (parseNested)
+import qualified VK.Types.Utils as Utils (parseNested)
 import           BotPrelude
 
 newtype MessageId = MessageId { getId :: Integer}

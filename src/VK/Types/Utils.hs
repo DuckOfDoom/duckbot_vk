@@ -1,12 +1,12 @@
 {-# OPTIONS_GHC -fno-warn-partial-type-signatures #-}
 
-module API.Types.Utils
+module VK.Types.Utils
   ( prettifyError
   , parseNested
   )
   where
 
-import           API.Types.Error          (Error)
+import           VK.Types.Error          (Error)
 import           BotPrelude
 import           Data.Aeson.Encode.Pretty (Config(..), Indent(..),
                                            NumberFormat(..), encodePretty',
