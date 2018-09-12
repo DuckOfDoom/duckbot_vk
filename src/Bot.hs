@@ -10,8 +10,9 @@ import BotPrelude
 import Data.Aeson      (decodeFileStrict)
 
 import qualified Bot.Handler     as Handler (handle)
-
 import qualified Service.Logging as Logging (processLog)
+
+import Modules.CofQuiz.Types (defaultState)
 
 startBot :: IO ()
 startBot = do
@@ -33,6 +34,7 @@ initEnv = do
   pure $ Env
    { _config = config'
    , _logger = Logging.processLog
+   , _quizState = defaultState
    }
    where
     readConfig :: IO Config
