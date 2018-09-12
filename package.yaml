@@ -39,6 +39,7 @@ dependencies:
 - wai
 - wai-extra
 - http-types
+- random
 - warp
 
 default-extensions:

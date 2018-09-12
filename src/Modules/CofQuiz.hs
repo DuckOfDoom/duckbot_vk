@@ -4,6 +4,10 @@ module Modules.CofQuiz
   where
 
 import BotPrelude
+
+import Prelude (lookup, (!!))
+
+import System.Random (randomRIO)
 import Bot.Types (Bot, quizState)
 import Modules.CofQuiz.Types (currentQuestion)
 
@@ -11,25 +15,34 @@ import qualified VK.Requests as VK (sendMessage)
 
 replyToMessage :: Integer -> Text -> Bot ()
 replyToMessage userId text = do
-  state <- fmap (^. quizState) ask
-  case (state ^. currentQuestion) of 
+  qState <- fmap (^. quizState) ask
+  case (qState ^. currentQuestion) of 
     Just q -> processAnswer userId q text
-    Nothing -> sendQuestion 
+    Nothing -> sendQuestion userId 
   pure ()
-
-  -- main = do
-  --   r <- randomRIO (0, length(answers) - 1)
-  --   print $ answers !! r
-  --   print $ lookup "a" answers
 
 type Question = Text
 type Answer = Text
 
-processAnswer :: Integer -> Question -> Answer -> Bot ()
-processAnswer = undefined
+processAnswer :: Integer -> Text -> Text -> Bot ()
+processAnswer userId question answer 
+  | lookup question answers == Just answer = do
+    VK.sendMessage userId "Correct!"
+    sendQuestion userId
+  | otherwise = VK.sendMessage userId "Incorrect! Try again!" >> pure ()
 
-sendQuestion :: Bot () 
-sendQuestion = undefined
+sendQuestion :: Integer -> Bot () 
+sendQuestion userId = do
+  rand <- lift $ randomRIO (0, length answers - 1)
+  let 
+    question = answers !! rand
+    message = "Вот вопроc: " <> (answers !! rand)
+  fmap (^. quizState) ask >>= (currentQuestion .~ Just question)
+  -- fmap (quizState & currentQuestion .~ Just question) ask 
+  _ <- VK.sendMessage userId message
+  pure ()
+    where 
+      updateState st q = st & currentquestion .~ Just q
     
 answers :: [(Text, Text)]
 answers = 
