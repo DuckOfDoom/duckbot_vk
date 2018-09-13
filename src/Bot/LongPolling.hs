@@ -2,15 +2,14 @@ module Bot.LongPolling
   ( startLongPolling
   ) where
 
-import VK.Requests    (getLongPollingServer, longPoll)
-import VK.Types       (LongPollServerSettings, Update, ts, updates, Failed(..))
-import Bot.Types       (Bot)
-import Bot.Handler     (HandlerState(..))
-import BotPrelude      hiding (handle)
+import Bot.Types   (Bot)
+import BotPrelude  hiding (handle)
+import VK.Requests (getLongPollingServer, longPoll)
+import VK.Types    (Failed(..), LongPollServerSettings, Update, ts, updates)
 
 import qualified Service.Logging as Log (error, info)
 
-startLongPolling :: (Update -> StateT HandlerState Bot ()) -> Bot ()
+startLongPolling :: (Update -> Bot ()) -> Bot ()
 startLongPolling handle = do
   Log.info "Connecting to LongPoll server..."
   initialSettings <- getLongPollingServer
@@ -20,23 +19,23 @@ startLongPolling handle = do
     where
       run :: LongPollServerSettings -> Bot ()
       run settings = do
-        _ <- runStateT (mkRequest settings) (HandlerState 0)
+        _ <- mkRequest settings
         pure ()
 
-      mkRequest :: LongPollServerSettings -> StateT HandlerState Bot ()
+      mkRequest :: LongPollServerSettings -> Bot ()
       mkRequest settings = do
-        res <- lift $ longPoll settings
+        res <- longPoll settings
         case res of
           Left (Failed 1 (Just newTs)) -> do
             Log.info "Got failed:1, making request with new TS..."
-            mkRequest (settings & ts .~ newTs) 
+            mkRequest (settings & ts .~ newTs)
           Left (Failed 2 _) -> do
             Log.info "Got failed:2, reconnecting to long poll server..."
-            lift $ startLongPolling handle
+            startLongPolling handle
           Left (Failed 3 _) -> do
             Log.info "Got failed:2, reconnecting to long poll server..."
-            lift $ startLongPolling handle
-          Left (Failed 4 _) -> do 
+            startLongPolling handle
+          Left (Failed 4 _) -> do
             Log.error "Got invalid version respone ('failed:4'). Please fix long poll verson!"
             pure ()
 
@@ -44,7 +43,7 @@ startLongPolling handle = do
             Log.error "Didn't get any result on long polling! Retrying in 5 seconds..."
             liftIO $ threadDelay 5000000
             mkRequest settings
-          Right (Just u) -> do 
+          Right (Just u) -> do
             mapM_ handle (u ^. updates)
             mkRequest (settings & ts .~ (u ^. ts))
 

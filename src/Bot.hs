@@ -34,6 +34,7 @@ initEnv = do
   pure $ Env
    { _config = config'
    , _logger = Logging.processLog
+   , _lastSentMessageId = 0
    , _quizState = defaultState
    }
    where

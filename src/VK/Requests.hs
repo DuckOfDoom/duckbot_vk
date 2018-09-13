@@ -14,11 +14,11 @@ import VK.Types (Error(..), LongPollResponse(..), Failed, LongPollServerSettings
 import qualified VK.Types.Utils as Utils (prettifyError)
 
 import Bot.Config   (longPollVersion, accessToken, apiVersion)
-import Bot.Types    (Bot, config)
+import Bot.Types    (Bot, config, lastSentMessageId)
 import Data.Aeson   (decode)
 import Network.Wreq (param)
 
-import qualified Service.Logging as Log (error)
+import qualified Service.Logging as Log (info, error)
 import qualified Service.UrlComposer as Url (messagesGetLongPollServer, messagesSend, mkLongPollServerUrl)
 import qualified Service.Wreq as Wreq (getWith, defaults, Options)
 
@@ -66,7 +66,7 @@ longPoll settings = do
         response <- maybe (pure Nothing) (parse url) json
         pure $ Right response
 
-sendMessage :: Integer -> Text -> Bot (Maybe MessageId)
+sendMessage :: Integer -> Text -> Bot ()
 sendMessage userId msg = do
   let url = Url.messagesSend
   opts <- defaultOpts 
@@ -75,7 +75,14 @@ sendMessage userId msg = do
     <&> param "message" .~ [msg]
  
   result <- Wreq.getWith url opts 
-  maybe (pure Nothing) (parse url) result
+  messageId <- (maybe (pure Nothing) (parse url) result) :: Bot (Maybe MessageId)
+  case messageId of
+    Just id -> do
+      Log.info ("Updating: " <> show id)
+      updateState (getId id) <$> ask >> pure ()
+    Nothing -> pure()
+  where 
+    updateState id st = st & lastSentMessageId .~ id
 
 -- Parses with outputting protocol errors or parsing errors to log
 parse :: FromJSON a => Text -> LBS.ByteString -> Bot (Maybe a)
