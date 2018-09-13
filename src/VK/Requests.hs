@@ -18,7 +18,6 @@ import Bot.Types    (Bot, config)
 import Data.Aeson   (decode)
 import Network.Wreq (param)
 
--- TODO: import as qualified Log and rename functions
 import qualified Service.Logging as Log (error)
 import qualified Service.UrlComposer as Url (messagesGetLongPollServer, messagesSend, mkLongPollServerUrl)
 import qualified Service.Wreq as Wreq (getWith, defaults, Options)

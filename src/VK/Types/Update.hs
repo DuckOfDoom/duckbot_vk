@@ -3,10 +3,10 @@
 
 module VK.Types.Update
   ( Update(..)
-  -- , messageId
-  -- , fromUser
-  -- , text
-  -- , timestamp
+  , messageId
+  , fromUser
+  , text
+  , timestamp
   )
 where
 
@@ -22,7 +22,7 @@ data Update
    }
   deriving (Show, Eq, Generic)
 
-makePrisms ''Update
+makeLenses ''Update
 
 instance FromJSON Update where
   parseJSON (Array a) = do

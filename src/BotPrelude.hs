@@ -6,7 +6,7 @@ module BotPrelude
 
 import Control.Lens        as RE (makeClassy, makeFields, makeFieldsNoPrefix,
                                   makeLenses, makePrisms, (%~), (.~), (?~),
-                                  (^.), (^..), (^?), _1, _2, _3, _4, _Just,
+                                  (^.), (^..), (^?), (^?!), _1, _2, _3, _4, _Just,
                                   _Nothing)
 import Data.Aeson          as RE (FromJSON, ToJSON, Value(..), object,
                                   parseJSON, toJSON, withObject, withScientific,

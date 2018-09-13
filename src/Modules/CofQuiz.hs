@@ -9,43 +9,47 @@ import Prelude (lookup, (!!))
 
 import System.Random (randomRIO)
 import Bot.Types (Bot, quizState)
-import Modules.CofQuiz.Types (currentQuestion)
+import Modules.CofQuiz.Types (currentQuestion, QuizState)
 
 import qualified VK.Requests as VK (sendMessage)
 
 replyToMessage :: Integer -> Text -> Bot ()
 replyToMessage userId text = do
   qState <- fmap (^. quizState) ask
-  case (qState ^. currentQuestion) of 
+  case (qState ^. currentQuestion) of
     Just q -> processAnswer userId q text
-    Nothing -> sendQuestion userId 
+    Nothing -> sendQuestion userId
   pure ()
 
 type Question = Text
 type Answer = Text
 
-processAnswer :: Integer -> Text -> Text -> Bot ()
-processAnswer userId question answer 
+processAnswer :: Integer -> Question -> Answer -> Bot ()
+processAnswer userId question answer
   | lookup question answers == Just answer = do
-    VK.sendMessage userId "Correct!"
+    _ <- VK.sendMessage userId "Correct!"
     sendQuestion userId
-  | otherwise = VK.sendMessage userId "Incorrect! Try again!" >> pure ()
 
-sendQuestion :: Integer -> Bot () 
+  | otherwise = do
+    _ <- VK.sendMessage userId "Incorrect! Try again!"
+    pure ()
+
+sendQuestion :: Integer -> Bot ()
 sendQuestion userId = do
   rand <- lift $ randomRIO (0, length answers - 1)
-  let 
-    question = answers !! rand
-    message = "Вот вопроc: " <> (answers !! rand)
-  fmap (^. quizState) ask >>= (currentQuestion .~ Just question)
-  -- fmap (quizState & currentQuestion .~ Just question) ask 
+  let
+    question = fst (answers !! rand)
+    message = "Вот вопрос: " <> fst (answers !! rand)
+
+  _ <- updateState question . (^. quizState) <$> ask
   _ <- VK.sendMessage userId message
   pure ()
-    where 
-      updateState st q = st & currentquestion .~ Just q
-    
+    where
+      updateState :: Text -> QuizState -> QuizState
+      updateState q st = st & currentQuestion .~ (Just q)
+
 answers :: [(Text, Text)]
-answers = 
+answers =
   [ ("C", "-" )
   , ("Am", "-")
 
@@ -67,3 +71,4 @@ answers =
   , ("Eb", "Bb Eb Db")
   , ("Eb", "Bb Eb Db")
   ]
+
