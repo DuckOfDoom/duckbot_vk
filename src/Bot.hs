@@ -5,7 +5,7 @@ module Bot
 import Bot.Config      (Config)
 import Bot.LongPolling (startLongPolling)
 import Bot.Server      (runServer)
-import Bot.Types       (Env(..))
+import Bot.Types       (Env(..), BotState(..))
 import BotPrelude
 import Data.Aeson      (decodeFileStrict)
 
@@ -18,7 +18,9 @@ startBot :: IO ()
 startBot = do
   env <- initEnv
   let
-    startInNewThread f = forkIO $ runReaderT f env
+    startInNewThread f = forkIO $ do 
+      _ <- runStateT BotState { _lastSentMessageId = 0 } $ runReaderT f env
+      pure ()
     loop = threadDelay 1000 >> loop
 
   mapM_ startInNewThread
@@ -34,7 +36,6 @@ initEnv = do
   pure $ Env
    { _config = config'
    , _logger = Logging.processLog
-   , _lastSentMessageId = 0
    , _quizState = defaultState
    }
    where

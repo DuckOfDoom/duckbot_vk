@@ -23,7 +23,7 @@ handle m@Message{..} = do
     VK.sendMessage _fromUser ("Don't you '" <> _text <> "' on me!")
     pure () 
     where 
-        getLastSentId = (^. lastSentMessageId) <$> ask
+        getLastSentId = (^. lastSentMessageId) <$> get
 
 handle Undefined = pure ()
   

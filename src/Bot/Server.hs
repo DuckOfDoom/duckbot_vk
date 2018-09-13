@@ -24,7 +24,7 @@ runServer = do
     settings = setPort port' defaultSettings
 
   Log.info $ "Starting server on port " <> showT port'
-  lift $ runSettings settings (mkApp env)
+  lift $ lift $ runSettings settings (mkApp env)
 
 mkApp :: Env -> Application
 mkApp _ request respond =

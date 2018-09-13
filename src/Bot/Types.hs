@@ -5,8 +5,9 @@ module Bot.Types
   , Env(..)
   , config
   , logger
-  , lastSentMessageId
   , quizState
+  , BotState (..)
+  , lastSentMessageId
   ) where
 
 import Bot.Config
@@ -16,12 +17,17 @@ import Data.Text    (Text)
 
 import Modules.CofQuiz.Types (QuizState)
 
-type Bot = ReaderT Env IO
+data BotState = BotState 
+  { _lastSentMessageId :: Integer
+  }
+
+makeLenses ''BotState
+
+type Bot = StateT BotState (ReaderT Env IO)
 
 data Env = Env
   { _config            :: Config
   , _logger            :: !(Text -> IO ())
-  , _lastSentMessageId :: Integer
   , _quizState         :: QuizState
   }
 

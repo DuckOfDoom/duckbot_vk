@@ -36,7 +36,7 @@ processAnswer userId question answer
 
 sendQuestion :: Integer -> Bot ()
 sendQuestion userId = do
-  rand <- lift $ randomRIO (0, length answers - 1)
+  rand <- (lift . lift) $ randomRIO (0, length answers - 1)
   let
     question = fst (answers !! rand)
     message = "Вот вопрос: " <> fst (answers !! rand)

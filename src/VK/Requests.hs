@@ -79,7 +79,7 @@ sendMessage userId msg = do
   case messageId of
     Just id -> do
       Log.info ("Updating: " <> show id)
-      updateState (getId id) <$> ask >> pure ()
+      updateState (getId id) <$> get >>= put 
     Nothing -> pure()
   where 
     updateState id st = st & lastSentMessageId .~ id
