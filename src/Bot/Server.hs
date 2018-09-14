@@ -3,7 +3,7 @@ module Bot.Server
   ) where
 
 import Bot.Config                (port)
-import Bot.Types                 (Bot, Env, config)
+import Bot.Types                 (Bot, Env, config, liftBot)
 import BotPrelude
 import Network.HTTP.Types.Status (status200, status404)
 import Network.Wai               (Application, Response, rawPathInfo,
@@ -24,7 +24,7 @@ runServer = do
     settings = setPort port' defaultSettings
 
   Log.info $ "Starting server on port " <> showT port'
-  lift $ lift $ runSettings settings (mkApp env)
+  liftBot $ runSettings settings (mkApp env)
 
 mkApp :: Env -> Application
 mkApp _ request respond =

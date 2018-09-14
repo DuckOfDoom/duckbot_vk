@@ -18,7 +18,7 @@ import Bot.Types    (Bot, config, lastSentMessageId)
 import Data.Aeson   (decode)
 import Network.Wreq (param)
 
-import qualified Service.Logging as Log (info, error)
+import qualified Service.Logging as Log (error)
 import qualified Service.UrlComposer as Url (messagesGetLongPollServer, messagesSend, mkLongPollServerUrl)
 import qualified Service.Wreq as Wreq (getWith, defaults, Options)
 
@@ -77,9 +77,7 @@ sendMessage userId msg = do
   result <- Wreq.getWith url opts 
   messageId <- (maybe (pure Nothing) (parse url) result) :: Bot (Maybe MessageId)
   case messageId of
-    Just id -> do
-      Log.info ("Updating: " <> show id)
-      updateState (getId id) <$> get >>= put 
+    Just id -> updateState (getId id) <$> get >>= put 
     Nothing -> pure()
   where 
     updateState id st = st & lastSentMessageId .~ id
