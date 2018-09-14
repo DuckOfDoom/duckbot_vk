@@ -1,4 +1,4 @@
-module Modules.CofQuiz
+module Modules.Quiz
   ( replyToMessage
   )
   where
@@ -8,7 +8,7 @@ import BotPrelude
 import Prelude (lookup, (!!))
 
 import Bot.Types             (Bot, liftBot, quizState)
-import Modules.CofQuiz.Types (currentQuestion)
+import Modules.Quiz.Types (currentQuestion)
 import System.Random         (randomRIO)
 
 import qualified Data.Text   as T (toLower, toUpper)
@@ -27,8 +27,8 @@ type Answer = Text
 
 processAnswer :: Integer -> Question -> Answer -> Bot ()
 processAnswer userId question answer
-  | lookup question answers == Just (T.toLower answer) = do
-    _ <- VK.sendMessage userId (mconcat ["Правильно! " , T.toUpper question, " -> ", T.toUpper answer])
+  | fmap T.toLower (lookup question answers) == Just (T.toLower answer) = do
+    _ <- VK.sendMessage userId (mconcat ["Правильно! ", question, " -> ", answer])
     sendQuestion userId 
 
   | otherwise = do
@@ -53,26 +53,26 @@ sendQuestion userId = do
         put (st & quizState .~ qState)
 
 answers :: [(Text, Text)]
-answers = map (map T.toLower)
+answers = 
   [ ("C", "-" )
   , ("Am", "-")
 
-  , ("G", "F#")
-  , ("Em", "F#")
+  , ("G", "F")
+  , ("Em", "F")
 
-  , ("D", "F# C#")
-  , ("Bm", "F# C#")
+  , ("D", "F C")
+  , ("Bm", "F C")
 
-  , ("A", "F# C# G#")
-  , ("Fm", "F# C# G#")
+  , ("A", "F C G")
+  , ("Fm", "F C G")
 
-  , ("F", "Bb")
-  , ("Dm", "Bb")
+  , ("F", "B")
+  , ("Dm", "B")
 
-  , ("Bb", "Bb Eb")
-  , ("Gm", "Bb Eb")
+  , ("Bb", "B E")
+  , ("Gm", "B E")
 
-  , ("Eb", "Bb Eb Ab")
-  , ("Eb", "Bb Eb Ab")
+  , ("Eb", "B E A")
+  , ("Eb", "B E A")
   ]
 

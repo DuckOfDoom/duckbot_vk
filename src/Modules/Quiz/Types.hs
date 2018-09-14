@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Modules.CofQuiz.Types
+module Modules.Quiz.Types
   ( QuizState(..) 
   , currentQuestion
   , defaultState

@@ -18,7 +18,7 @@ import BotPrelude
 import Control.Lens (makeLenses)
 import Data.Text    (Text)
 
-import Modules.CofQuiz.Types (QuizState(..))
+import Modules.Quiz.Types (QuizState(..))
 
 data BotState = BotState
   { _lastSentMessageId :: Integer

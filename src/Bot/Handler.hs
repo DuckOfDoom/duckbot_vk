@@ -9,7 +9,7 @@ import BotPrelude hiding (handle)
 
 import qualified Service.Logging as Log (info)
 -- import qualified VK.Requests as VK (sendMessage)
-import qualified Modules.CofQuiz as Quiz 
+import qualified Modules.Quiz as Quiz 
 
 handle :: Update -> Bot ()
 handle m@Message{..} = do
