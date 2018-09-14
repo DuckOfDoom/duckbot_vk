@@ -11,7 +11,7 @@ import Bot.Types             (Bot, liftBot, quizState)
 import Modules.Quiz.Types (currentQuestion)
 import System.Random         (randomRIO)
 
-import qualified Data.Text   as T (toLower, toUpper)
+import qualified Data.Text   as T (toLower)
 import qualified VK.Requests as VK (sendMessage)
 
 replyToMessage :: Integer -> Text -> Bot ()
@@ -64,7 +64,10 @@ answers =
   , ("Bm", "F C")
 
   , ("A", "F C G")
-  , ("Fm", "F C G")
+  , ("F#m", "F C G")
+
+  , ("E", "F C G D")
+  , ("C#", "F C G D")
 
   , ("F", "B")
   , ("Dm", "B")
@@ -73,6 +76,9 @@ answers =
   , ("Gm", "B E")
 
   , ("Eb", "B E A")
-  , ("Eb", "B E A")
+  , ("Cm", "B E A")
+
+  , ("Ab", "B E A D")
+  , ("Fm", "B E A D")
   ]
 
