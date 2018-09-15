@@ -67,7 +67,7 @@ answers =
   , ("F#m", "F C G")
 
   , ("E", "F C G D")
-  , ("C#", "F C G D")
+  , ("C#m", "F C G D")
 
   , ("F", "B")
   , ("Dm", "B")
