@@ -1,8 +1,7 @@
 {
-     "access_token" : "What",
+     "access_token" : "",
      "api_version" : "5.80",
      "long_poll_version" : "3",
      "port" : 1337,
-     "creator_id" : 12315,
-     "confirmation": "wow"
+     "admins" : []
 }
