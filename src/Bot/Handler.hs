@@ -4,7 +4,7 @@ module Bot.Handler
   where
 
 import VK.Types.Update (Update(..), fromUser, text)
-import Bot.Types (Bot, lastSentMessageId)
+import Bot.Types (Bot, lastSentMessageId, getStateForUser)
 import BotPrelude hiding (handle)
 
 import qualified Service.Logging as Log (info)
@@ -13,7 +13,8 @@ import qualified Modules.Quiz as Quiz
 
 handle :: Update -> Bot ()
 handle m@Message{..} = do
-  lastSent <- getLastSentId
+  let userId = m ^?! fromUser
+  lastSent <- (^. lastSentMessageId) <$> getStateForUser userId
   -- Ignore my own updates
   when (_messageId > lastSent) $ do
     Log.info $ "Handler. Received Message: " <> showT m
@@ -21,8 +22,6 @@ handle m@Message{..} = do
     Quiz.replyToMessage (m ^?! fromUser) (m ^?! text)
     -- VK.sendMessage _fromUser ("Don't you '" <> _text <> "' on me!")
     pure () 
-    where 
-        getLastSentId = (^. lastSentMessageId) <$> get
 
 handle Undefined = pure ()
   

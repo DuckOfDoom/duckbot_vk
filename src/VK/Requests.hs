@@ -10,17 +10,20 @@ module VK.Requests
 
 import BotPrelude
 
-import VK.Types (Error(..), LongPollResponse(..), Failed, LongPollServerSettings(..), key, server, ts, MessageId(..))
+import           VK.Types       (Error(..), Failed, LongPollResponse(..),
+                                 LongPollServerSettings(..), MessageId(..), key,
+                                 server, ts)
 import qualified VK.Types.Utils as Utils (prettifyError)
 
-import Bot.Config   (longPollVersion, accessToken, apiVersion)
-import Bot.Types    (Bot, config, lastSentMessageId)
+import Bot.Config   (accessToken, apiVersion, longPollVersion)
+import Bot.Types    (Bot, config, lastSentMessageId, updateStateForUser)
 import Data.Aeson   (decode)
 import Network.Wreq (param)
 
-import qualified Service.Logging as Log (error)
-import qualified Service.UrlComposer as Url (messagesGetLongPollServer, messagesSend, mkLongPollServerUrl)
-import qualified Service.Wreq as Wreq (getWith, defaults, Options)
+import qualified Service.Logging     as Log (error)
+import qualified Service.UrlComposer as Url (messagesGetLongPollServer,
+                                             messagesSend, mkLongPollServerUrl)
+import qualified Service.Wreq        as Wreq (Options, defaults, getWith)
 
 import Data.ByteString.Lazy as LBS
 import Data.Text.Encoding   as T
@@ -29,7 +32,7 @@ import NeatInterpolation
 
 defaultOpts :: Bot Wreq.Options
 defaultOpts = do
-  env <- ask 
+  env <- ask
   pure $ Wreq.defaults
     & param "access_token" .~ [env ^. (config . accessToken)]
     & param "v"            .~ [env ^. (config . apiVersion)]
@@ -40,7 +43,7 @@ getLongPollingServer = do
   let url = Url.messagesGetLongPollServer
 
   opts <- defaultOpts
-   <&> param "lp_version" .~ [lp_version] 
+   <&> param "lp_version" .~ [lp_version]
 
   json <- Wreq.getWith url opts
   maybe (pure Nothing) (parse url) json
@@ -50,7 +53,7 @@ longPoll settings = do
   version <- (^. (config . longPollVersion)) <$> ask
   let url = Url.mkLongPollServerUrl (settings ^. server)
 
-  opts <- defaultOpts 
+  opts <- defaultOpts
     <&> param "act" .~ ["a_check"]
     <&> param "mode" .~ ["2"]
     <&> param "wait" .~ ["25"]
@@ -60,7 +63,7 @@ longPoll settings = do
 
   json <- Wreq.getWith url opts
   failed <- maybe (pure Nothing) parseSilent json :: Bot (Maybe Failed)
-  case failed of 
+  case failed of
     Just f -> pure $ Left f
     Nothing -> do
         response <- maybe (pure Nothing) (parse url) json
@@ -69,23 +72,26 @@ longPoll settings = do
 sendMessage :: Integer -> Text -> Bot ()
 sendMessage userId msg = do
   let url = Url.messagesSend
-  opts <- defaultOpts 
+  opts <- defaultOpts
     <&> param "user_id" .~ [showT userId]
     <&> param "peer_id" .~ [showT userId]
     <&> param "message" .~ [msg]
- 
-  result <- Wreq.getWith url opts 
+
+  result <- Wreq.getWith url opts
   messageId <- (maybe (pure Nothing) (parse url) result) :: Bot (Maybe MessageId)
   case messageId of
-    Just id -> updateState (getId id) <$> get >>= put 
-    Nothing -> pure()
-  where 
-    updateState id st = st & lastSentMessageId .~ id
+    Just mId -> updateState mId
+    Nothing  -> pure()
+  where
+    updateState :: MessageId -> Bot ()
+    updateState messageId = do
+      _ <- updateStateForUser userId (\st -> st & lastSentMessageId .~ getId messageId)
+      pure ()
 
 -- Parses with outputting protocol errors or parsing errors to log
 parse :: FromJSON a => Text -> LBS.ByteString -> Bot (Maybe a)
 parse methodName bs = case eitherParse bs of
-    Left e -> logError e methodName >> pure Nothing
+    Left e       -> logError e methodName >> pure Nothing
     Right result -> pure $ Just result
 
 -- Parses without outputting anything
@@ -104,7 +110,7 @@ eitherParse bs =
       parsingError = ParsingError "Failed to parse JSON" (T.decodeUtf8 $ LBS.toStrict bs)
 
 logError :: Error -> Text -> Bot ()
-logError ParsingError{..} methodName = 
+logError ParsingError{..} methodName =
   Log.error [text|'Request: ${methodName}'
     Failed to parse JSON:
     ${_json}|]
