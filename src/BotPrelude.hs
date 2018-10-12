@@ -19,6 +19,8 @@ import Control.Concurrent.MVar as RE ()
 import Data.Time
 import Protolude hiding (print)
 
+import System.Random as RE (randomIO, randomRIO)
+
 import qualified Data.Text as T
 
 --import Data.List as RE
@@ -27,8 +29,6 @@ import qualified Data.Text as T
 --  (UTCTime(..), Day(..))
 --import System.Directory as RE
 --  (doesFileExist)
---import System.Random as RE
---  (randomIO, randomRIO)
 
 getCurrentTime :: MonadIO m => m UTCTime
 getCurrentTime = liftIO Data.Time.getCurrentTime

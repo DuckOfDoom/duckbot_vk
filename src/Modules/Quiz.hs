@@ -12,7 +12,6 @@ import Prelude (lookup, (!!))
 import Bot.Types          (Bot, getStateForUser, liftBot, quizState,
                            updateStateForUser)
 import Modules.Quiz.Types (currentQuestion, score)
-import System.Random      (randomRIO)
 import Modules.Quiz.Types (defaultState)
 
 import qualified Data.Text   as T (toLower)
