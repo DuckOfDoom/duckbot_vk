@@ -15,23 +15,31 @@ import qualified Data.Text as T
 
 handle :: Update -> Bot ()
 handle m@Message{..} = do
+  let mText = m ^?! text
   let userId = m ^?! fromUser
+
   lastSent <- (^. lastSentMessageId) <$> getStateForUser userId
   -- Ignore my own updates
   when (_messageId > lastSent) $ do
     Log.info $ "Handler. Received Message: " <> showT m
-    let mText = m ^?! text
-    if "ты хуй" `T.isInfixOf` T.toLower mText || "нет ты" `T.isInfixOf` T.toLower mText
-      then do
-        rand <- liftBot (randomIO :: IO Double)
-        if rand < 0.1337
-          then VK.sendMessage userId "вот ето у тебя пeчот)"
-          else VK.sendMessage userId "нет ты)))"
-        -- TODO: Rewrite Updates without sum types so we don't need to use fromJust?
-      else 
-        Quiz.replyToMessage (m ^?! fromUser) (m ^?! text)
-    -- VK.sendMessage _fromUser ("Don't you '" <> _text <> "' on me!")
-    pure () 
+    replied <- canHandleRoman mText userId
+    unless replied $ Quiz.replyToMessage (m ^?! fromUser) (m ^?! text)
 
 handle Undefined = pure ()
-  
+
+canHandleRoman :: Text -> Integer -> Bot Bool
+canHandleRoman t userId 
+  | hasPidor = do
+    rand <- liftBot (randomIO :: IO Double)
+    if rand < 0.1337
+      then VK.sendMessage userId "вот ето у тебя пeчот)" 
+      else VK.sendMessage userId "нет ты)))" 
+    pure True
+  | otherwise = 
+      pure False
+  where 
+    hasPidor =
+      let lowerT = T.toLower t
+       in "ты хуй" `T.isInfixOf` lowerT 
+       || "ты пидр" `T.isInfixOf` lowerT 
+       || "нет ты" `T.isInfixOf` lowerT
