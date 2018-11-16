@@ -36,5 +36,5 @@ getCurrentTime = liftIO Data.Time.getCurrentTime
 showT :: Show a => a -> Text
 showT = T.pack . show
 
-print :: Text -> IO ()
-print = putStrLn
+prnt :: (Show a) => a -> IO ()
+prnt = putStrLn . showT 

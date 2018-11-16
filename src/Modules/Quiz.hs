@@ -11,8 +11,7 @@ import Prelude (lookup, (!!))
 
 import Bot.Types          (Bot, getStateForUser, liftBot, quizState,
                            updateStateForUser)
-import Modules.Quiz.Types (currentQuestion, score)
-import Modules.Quiz.Types (defaultState)
+import Modules.Quiz.Types (currentQuestion, score, defaultState)
 
 import qualified Data.Text   as T (toLower)
 import qualified VK.Requests as VK (sendMessage)
