@@ -1,6 +1,6 @@
 module Modules.ModesHelper
   ( getMode
-  , test
+  -- , test
   )
   where
 
