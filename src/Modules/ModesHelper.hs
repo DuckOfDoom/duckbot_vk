@@ -1,6 +1,5 @@
 module Modules.ModesHelper
   ( getMode
-  -- , test
   )
   where
 
@@ -25,7 +24,6 @@ getMode note mode = do
   case (eNote, eIntervals) of
     (Just n, Just i) -> Right $ showT $ map showNote $ getMode' n i
     (_, _)           -> Left ("Incorrect input: '" <> note <> "' '" <> mode) 
-
 
 data Note = C | Cs | Db | D | Ds | Eb | E | F | Fs | Gb | G | Gs | Ab | A | As | Bb | B
   deriving (Show, Read, Eq)
@@ -72,10 +70,10 @@ getMode' key ints = g ints (scaleOf key) []
       | otherwise = []
     g _ _ _ = []
 
-test :: IO ()
-test = do
-  prnt $ getMode "A" "phrygian"
-  prnt $ getMode "as" "phrygian"
+-- test :: IO ()
+-- test = do
+--   prnt $ getMode "A" "phrygian"
+--   prnt $ getMode "as" "phrygian"
   -- prnt $ getMode' A ionian
   -- prnt $ getMode' A aeolian
   -- prnt $ getMode' Bb dorian

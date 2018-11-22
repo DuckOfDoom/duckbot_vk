@@ -23,11 +23,13 @@ handle m@Message{..} = do
   when (_messageId > lastSent) $ do
     Log.info $ "Handler. Received Message: " <> showT m
     -- TODO: Handle with care
-    handler <- mapM ($ mText) [handleRoman, handleQuiz]
-    pure ()
-    -- case handler of 
-    --   Just h -> h userId mText
-      -- Nothing -> handleDefault userId mText
+    getHandler mText userId mText
+      where 
+        getHandler :: Text -> Handler
+        getHandler t = fromMaybe handleDefault $ msum $ map ($ t) 
+          [ handleRoman
+          , handleQuiz
+          ]
 
 handle Undefined = pure ()
 
@@ -36,18 +38,18 @@ type Handler = Integer -> Text -> Bot ()
 handleDefault :: Handler
 handleDefault userId _ = VK.sendMessage userId "Не понимаю, о чем ты." 
 
-handleQuiz :: Text -> Bot (Maybe Handler)
-handleQuiz _ = pure $ Just (\userId msg -> Quiz.replyToMessage userId msg)
+handleQuiz :: Text -> Maybe Handler
+handleQuiz _ = pure (\userId msg -> Quiz.replyToMessage userId msg)
 
-handleRoman :: Text -> Bot (Maybe Handler)
+handleRoman :: Text -> Maybe Handler
 handleRoman t 
-  | hasPidor = pure $ Just (\userId msg -> do
+  | hasPidor = Just (\userId _ -> do
     rand <- liftBot (randomIO :: IO Double)
     if rand < 0.1337
       then VK.sendMessage userId "вот ето у тебя пeчот)" 
       else VK.sendMessage userId "нет ты)))" 
   )
-  | otherwise = pure $ Nothing
+  | otherwise = Nothing
   where 
     hasPidor =
       let lowerT = T.toLower t
