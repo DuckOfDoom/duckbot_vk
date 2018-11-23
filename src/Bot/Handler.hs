@@ -9,6 +9,7 @@ import BotPrelude hiding (handle)
 
 import qualified Service.Logging as Log (info)
 import qualified Modules.Quiz as Quiz 
+import qualified Modules.ModesHelper as ModesHelper 
 import qualified VK.Requests as VK (sendMessage)
 
 import qualified Data.Text as T
@@ -28,6 +29,7 @@ handle m@Message{..} = do
         getHandler :: Text -> Handler
         getHandler t = fromMaybe handleDefault $ msum $ map ($ t) 
           [ handleRoman
+          , handleModes
           , handleQuiz
           ]
 
@@ -37,6 +39,19 @@ type Handler = Integer -> Text -> Bot ()
 
 handleDefault :: Handler
 handleDefault userId _ = VK.sendMessage userId "Не понимаю, о чем ты." 
+
+handleModes :: Text -> Maybe Handler
+handleModes t 
+  | "/mode" `T.isPrefixOf` t && (length . T.words) t >= 2 = Just 
+    (\userId msg -> 
+      case ModesHelper.getMode (getInput $ (drop 1 . T.words) msg) of 
+        Right result -> VK.sendMessage userId result 
+        Left error -> VK.sendMessage userId $ "Error: " <> error
+    )
+  | otherwise = Nothing
+    where 
+      getInput (x:y:_) = (x, y)
+      getInput vals = ("Incorrect format:", showT vals)
 
 handleQuiz :: Text -> Maybe Handler
 handleQuiz _ = pure (\userId msg -> Quiz.replyToMessage userId msg)

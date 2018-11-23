@@ -7,8 +7,8 @@ import           BotPrelude hiding (shift, note)
 import qualified Data.Text  as T
 import qualified Data.HashMap.Strict  as HM
 
-getMode :: Text -> Text -> Either Text Text
-getMode note mode = do
+getMode :: (Text, Text) -> Either Text Text
+getMode (note, mode) = do
   eNote <- pure $ readNote note
   eIntervals <- pure $ HM.lookup mode $ HM.fromList
     [("ionian", ionian)
