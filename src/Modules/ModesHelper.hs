@@ -14,16 +14,15 @@ getMode (note, mode) =
         rMode = getMode' note' intervals
         formattedMode = (Utils.joinText " " . map showNote) rMode
         in
-          Right $ Utils.joinText " " [formattedMode, comment]
+          Right $ Utils.joinText "\n" [showNote note' <> " " <> comment, formattedMode]
 
-    (_, Nothing)           -> Left $ "Can't read mode: " <> mode
-    (Nothing, Just _)           -> Left $ "Can't read note: " <> note
+    (_, Nothing)      -> Left $ "Can't read mode: " <> mode
+    (Nothing, Just _) -> Left $ "Can't read note: " <> note
     where
       showNote :: Note -> Text
       showNote n = T.replace "s" "#" (showT n)
 
       readNote :: Maybe Note
-      -- TODO: Fix reading for B!
       readNote
        | T.null note = Nothing
        | T.length note == 1 = (readMaybe . T.unpack . T.toUpper) note :: Maybe Note
