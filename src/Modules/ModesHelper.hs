@@ -24,7 +24,16 @@ getMode (note, mode) =
 
       readNote :: Maybe Note
       -- TODO: Fix reading for B!
-      readNote = readMaybe (T.unpack $ (T.replace "#" "s" . T.replace "B" "b" . T.toUpper) note) :: Maybe Note
+      readNote
+       | T.null note = Nothing
+       | T.length note == 1 = (readMaybe . T.unpack . T.toUpper) note :: Maybe Note
+       | otherwise = (readMaybe . replaceSymbol . T.unpack . T.toUpper) note :: Maybe Note
+        where
+          replaceSymbol (x:y)
+            | y == "#" = x:"s"
+            | y == "B" = x:"b"
+            | otherwise = ""
+          replaceSymbol _ = ""
 
       findMode :: Maybe (Text, [Int], Text)
       findMode = find (\(name, _, _) -> T.toLower mode `T.isPrefixOf` name)
