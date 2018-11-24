@@ -10,6 +10,7 @@ import Bot.Types            (Env, logger)
 import BotPrelude           hiding (log)
 import Control.Lens         ((^.))
 import Control.Monad.Reader (MonadIO, MonadReader, ask, liftIO)
+import qualified Utils
 
 processLog :: Text -> IO ()
 processLog t = -- do
@@ -39,7 +40,7 @@ log prefix msg = do
   env <- ask
   -- TODO: Add time to logs?
   --t <- fmap formatTime getCurrentTime
-  liftIO $ getLog env $ mconcat $ intersperse " "
+  liftIO $ getLog env $ Utils.joinText " "
     [ prefix
     , msg
     ]

@@ -23,13 +23,6 @@ import System.Random as RE (randomIO, randomRIO)
 
 import qualified Data.Text as T
 
---import Data.List as RE
---  (lookup, nub)
---import Data.Time as RE
---  (UTCTime(..), Day(..))
---import System.Directory as RE
---  (doesFileExist)
-
 getCurrentTime :: MonadIO m => m UTCTime
 getCurrentTime = liftIO Data.Time.getCurrentTime
 

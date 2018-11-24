@@ -46,12 +46,12 @@ handleModes t
     (\userId msg -> 
       case ModesHelper.getMode (getInput $ (drop 1 . T.words) msg) of 
         Right result -> VK.sendMessage userId result 
-        Left error -> VK.sendMessage userId $ "Error: " <> error
+        Left error -> VK.sendMessage userId error
     )
   | otherwise = Nothing
     where 
       getInput (x:y:_) = (x, y)
-      getInput vals = ("Incorrect format:", showT vals)
+      getInput vals = ("Непонятный формат:", showT vals)
 
 handleQuiz :: Text -> Maybe Handler
 handleQuiz _ = pure (\userId msg -> Quiz.replyToMessage userId msg)
