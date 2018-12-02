@@ -21,7 +21,7 @@ handle m@Message{..} = do
 
   lastSent <- (^. lastSentMessageId) <$> getStateForUser userId
   -- Ignore my own updates
-  when (_messageId > lastSent) $ do
+  when (_messageId /= lastSent) $ do
     Log.info $ "Handler. Received Message: " <> showT m
     -- TODO: Handle with care
     getHandler mText userId mText

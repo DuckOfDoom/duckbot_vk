@@ -30,6 +30,7 @@ instance FromJSON Update where
     case (uType :: Integer) of
       -- Message goes as follows [0:updateType, 1:message_id, 2:flags, 3:peer_id, 4:timestamp, 5: text ]
       4 -> parseMessage $ (tailSafe . toList) a
+      5 -> parseMessage $ (tailSafe . toList) a -- Parse edits as messages too, they have the same layout
       _ -> pure Undefined
     where
       parseUpdateType (Just v) = parseJSON v
