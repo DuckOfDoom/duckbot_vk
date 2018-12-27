@@ -1,4 +1,4 @@
-{-# LANGUAGE QuasiQuotes       #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 module Modules.Quiz
   ( replyToMessage
@@ -6,21 +6,25 @@ module Modules.Quiz
   where
 
 import BotPrelude
+import System.IO.Unsafe
 
 import Prelude (lookup, (!!))
 
 import Bot.Types          (Bot, getStateForUser, liftBot, quizState,
                            updateStateForUser)
-import Modules.Quiz.Types (currentQuestion, score, defaultState)
+import Modules.Quiz.Types (currentQuestion, defaultState, score)
 
-import qualified Data.Text   as T (toLower)
-import qualified VK.Requests as VK (sendMessage)
-import qualified NeatInterpolation as F (text) 
+import           Data.List         (nub)
+import qualified Data.Text         as T (toLower)
+import qualified NeatInterpolation as F (text)
+import qualified VK.Requests       as VK (sendMessageWithKeyboard)
+import           VK.Types          (Keyboard)
+import           VK.Types.Utils    (mkKeyboard)
 
-import qualified Service.Logging as Log (info) 
+import qualified Service.Logging as Log (info)
 
 mkQuestionMessage :: (Show b, Show a) => (a, b) -> Text -> Text
-mkQuestionMessage sc q = 
+mkQuestionMessage sc q =
   [F.text|Твой счет: ${curr}/${total}.
   Назови знаки в тональности: ${q}|]
   where
@@ -38,21 +42,21 @@ replyToMessage userId text = do
     Nothing -> do
       newQuestion <- getQuestion
       currScore <- updateState newQuestion identity
-      VK.sendMessage userId $ mkQuestionMessage currScore newQuestion
-    Just question -> 
+      VK.sendMessageWithKeyboard userId (mkQuestionMessage currScore newQuestion) answersKeyboard
+    Just question ->
       if isCorrectAnswer question text
         then do
           newQuestion <- getQuestion
           newScore <- updateState newQuestion (incScore IncBoth)
-          VK.sendMessage userId $ "Правильно! " <> mkQuestionMessage newScore newQuestion
+          VK.sendMessageWithKeyboard userId ("Правильно! " <> mkQuestionMessage newScore newQuestion) answersKeyboard
         else do
           newScore <- updateState question (incScore IncTotal)
-          VK.sendMessage userId $ "Неправильно! " <> mkQuestionMessage newScore question
+          VK.sendMessageWithKeyboard userId ("Неправильно! " <> mkQuestionMessage newScore question) answersKeyboard
   where
     incScore :: ScoreOperation -> (Int, Int) -> (Int, Int)
-    incScore IncBoth (curr, total) = (curr + 1, total + 1)
+    incScore IncBoth (curr, total)  = (curr + 1, total + 1)
     incScore IncTotal (curr, total) = (curr, total + 1)
-    incScore Reset _ = (0, 0)
+    incScore Reset _                = (0, 0)
 
     isCorrectAnswer :: Text -> Text -> Bool
     isCorrectAnswer question answer = fmap T.toLower (lookup question answers) == Just (T.toLower answer)
@@ -64,7 +68,7 @@ replyToMessage userId text = do
 
     updateState :: Text -> ((Int, Int) -> (Int, Int)) -> Bot (Int, Int)
     updateState newQuestion updateScore = do
-      newSt <- updateStateForUser userId $ 
+      newSt <- updateStateForUser userId $
         (\st -> st & quizState %~
           (\qState -> qState
             & currentQuestion .~ Just newQuestion
@@ -73,7 +77,7 @@ replyToMessage userId text = do
       pure (newSt ^. quizState ^. score)
 
     resetState = do
-      _ <- updateStateForUser userId $ 
+      _ <- updateStateForUser userId $
         (\st -> st & quizState .~ defaultState)
       pure ()
 
@@ -82,28 +86,36 @@ answers =
   [ ("C", "-" )
   , ("Am", "-")
 
-  , ("G", "F")
-  , ("Em", "F")
+  , ("G", "F#")
+  , ("Em", "F#")
 
-  , ("D", "F C")
-  , ("Bm", "F C")
+  , ("D", "F# C#")
+  , ("Bm", "F# C#")
 
-  , ("A", "F C G")
-  , ("F#m", "F C G")
+  , ("A", "F# C# G#")
+  , ("F#m", "F# C# G#")
 
-  , ("E", "F C G D")
-  , ("C#m", "F C G D")
+  , ("E", "F# C# G# D#")
+  , ("C#m", "F# C# G# D#")
 
-  , ("F", "B")
-  , ("Dm", "B")
+  , ("F", "Bb")
+  , ("Dm", "Bb")
 
-  , ("Bb", "B E")
-  , ("Gm", "B E")
+  , ("Bb", "Bb Eb")
+  , ("Gm", "Bb Eb")
 
-  , ("Eb", "B E A")
-  , ("Cm", "B E A")
+  , ("Eb", "Bb Eb Ab")
+  , ("Cm", "Bb Eb Ab")
 
-  , ("Ab", "B E A D")
-  , ("Fm", "B E A D")
+  , ("Ab", "Bb Eb Ab Db")
+  , ("Fm", "Bb Eb Ab Db")
   ]
 
+answersKeyboard :: Keyboard
+answersKeyboard =
+  let answers' = (nub . map snd) answers in
+  mkKeyboard
+    [ (take 4 . drop 1) answers'
+    , (take 4 . drop 5) answers'
+    , take 1 answers'
+    ]

@@ -3,10 +3,10 @@
 module VK.Types.Utils
   ( prettifyError
   , parseNested
+  , mkKeyboard
   )
   where
 
-import           VK.Types.Error          (Error)
 import           BotPrelude
 import           Data.Aeson.Encode.Pretty (Config(..), Indent(..),
                                            NumberFormat(..), encodePretty',
@@ -14,6 +14,8 @@ import           Data.Aeson.Encode.Pretty (Config(..), Indent(..),
 import qualified Data.ByteString.Lazy     as LBS (toStrict)
 import qualified Data.HashMap.Strict      as HM
 import qualified Data.Text.Encoding       as E
+import           VK.Types.Error           (Error)
+import           VK.Types.Keyboard
 
 prettifyError :: Error -> Text
 prettifyError e = E.decodeUtf8 $ LBS.toStrict $ encodePretty' conf e
@@ -28,8 +30,20 @@ prettifyError e = E.decodeUtf8 $ LBS.toStrict $ encodePretty' conf e
 parseNested :: Text -> (Value -> Parser a) -> Value -> Parser a
 parseNested expected nestedParser (Object o) =
   case head $ HM.toList o of
-    Just (actual, v) 
+    Just (actual, v)
       | expected == actual -> nestedParser v
       | otherwise -> mzero
     _             -> mzero
 parseNested _ _ _ = mzero
+
+mkKeyboard :: [[Text]] -> Keyboard
+mkKeyboard xs = Keyboard
+   { buttons = map (map mkButton) xs
+   , one_time = False
+   }
+  where
+    mkButton :: Text -> Button
+    mkButton t = Button
+      { action = Action "text" t
+      , color = Default
+      }

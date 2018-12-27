@@ -5,12 +5,14 @@ module VK.Requests
   ( getLongPollingServer
   , longPoll
   , sendMessage
+  , sendMessageWithKeyboard
   , eitherParse -- needed for testing
   ) where
 
 import BotPrelude
 
-import           VK.Types       (Error(..), Failed, LongPollResponse(..),
+import           VK.Types       (Error(..), Failed, Keyboard(..),
+                                 LongPollResponse(..),
                                  LongPollServerSettings(..), MessageId(..), key,
                                  server, ts)
 import qualified VK.Types.Utils as Utils (prettifyError)
@@ -70,15 +72,21 @@ longPoll settings = do
         pure $ Right response
 
 sendMessage :: Integer -> Text -> Bot ()
-sendMessage userId msg = do
-  let url = Url.messagesSend
-  opts <- defaultOpts
-    <&> param "user_id" .~ [showT userId]
-    <&> param "peer_id" .~ [showT userId]
-    <&> param "message" .~ [msg]
+sendMessage userId msg = defaultOpts >>= sendMessageInternal userId msg
 
-  result <- Wreq.getWith url opts
-  messageId <- (maybe (pure Nothing) (parse url) result) :: Bot (Maybe MessageId)
+sendMessageWithKeyboard :: Integer -> Text -> Keyboard -> Bot ()
+sendMessageWithKeyboard userId msg keyboard = optsWithKeyboard >>= sendMessageInternal userId msg
+    where
+      optsWithKeyboard = defaultOpts <&> param "keyboard" .~ [encodeToText keyboard]
+
+sendMessageInternal :: Integer -> Text -> Wreq.Options -> Bot ()
+sendMessageInternal userId msg opts = do
+  let url = Url.messagesSend
+  result <- Wreq.getWith url $ opts
+      & param "user_id" .~ [showT userId]
+      & param "peer_id" .~ [showT userId]
+      & param "message" .~ [msg]
+  messageId <- maybe (pure Nothing) (parse url) result :: Bot (Maybe MessageId)
   case messageId of
     Just mId -> updateState mId
     Nothing  -> pure()
