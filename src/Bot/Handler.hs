@@ -54,7 +54,7 @@ handleModes t
       getInput vals = ("Непонятный формат:", showT vals)
 
 handleQuiz :: Text -> Maybe Handler
-handleQuiz _ = pure (\userId msg -> Quiz.replyToMessage userId msg)
+handleQuiz _ = pure Quiz.replyToMessage 
 
 handleRoman :: Text -> Maybe Handler
 handleRoman t 

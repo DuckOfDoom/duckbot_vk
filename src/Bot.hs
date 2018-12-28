@@ -11,7 +11,7 @@ import Data.Aeson      (decodeFileStrict)
 
 import qualified Bot.Handler         as Handler (handle)
 import qualified Data.HashMap.Strict as HM (empty)
-import qualified Service.Logging     as Logging (processLog)
+import qualified Service.Logging     as Logging (initLogging)
 
 startBot :: IO ()
 startBot = do
@@ -32,9 +32,10 @@ startBot = do
 initEnv :: IO Env
 initEnv = do
   config' <- readConfig
+  logging <- Logging.initLogging
   pure $ Env
    { _config = config'
-   , _logger = Logging.processLog
+   , _logger = logging
    }
    where
     readConfig :: IO Config

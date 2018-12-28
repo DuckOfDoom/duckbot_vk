@@ -42,7 +42,7 @@ type Bot = StateT (HashMap Integer BotState) (ReaderT Env IO)
 updateStateForUser :: Integer -> (BotState -> BotState) -> Bot BotState
 updateStateForUser userId update = do
   userState <- getStateForUser userId
-  let newState = (update userState)
+  let newState = update userState
   HM.insert userId newState <$> get >>= put
   pure newState
 

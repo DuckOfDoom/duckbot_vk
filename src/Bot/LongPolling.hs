@@ -13,7 +13,7 @@ startLongPolling :: (Update -> Bot ()) -> Bot ()
 startLongPolling handle = do
   Log.info "Connecting to LongPoll server..."
   initialSettings <- getLongPollingServer
-  Log.info $ "Got initial settings:\n" <> showT initialSettings
+  Log.info $ "Got initial settings: " <> showT initialSettings
   maybe (pure ()) run initialSettings
   pure ()
     where

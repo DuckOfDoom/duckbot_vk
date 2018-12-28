@@ -1,0 +1,41 @@
+INFO: Connecting to LongPoll server...INFO: Starting server on port 1337INFO: Got initial settings:
+Just (LongPollServerSettings {_server = "imv4.vk.com/im1237", _key = "8cb0f43dd83d8f686c60b278a72f2a359e064126", _ts = 1825389994})INFO: Starting server on port 1337
+INFO: Connecting to LongPoll server...
+INFO: Got initial settings:
+Just (LongPollServerSettings {_server = "imv4.vk.com/im1237", _key = "d74bee5fc8214314db1227528569c060cce38208", _ts = 1825389994})
+INFO: Connecting to LongPoll server...
+INFO: Starting server on port 1337
+INFO: Got initial settings:
+Just (LongPollServerSettings {_server = "imv4.vk.com/im1237", _key = "1a16ec4ddd45e9273deb4a2216c76ab6da425e77", _ts = 1825389994})
+"28/Dec/2018:12:51:26 +0300" INFO: Starting server on port 1337
+"28/Dec/2018:12:51:26 +0300" INFO: Connecting to LongPoll server...
+"28/Dec/2018:12:51:26 +0300" INFO: Got initial settings: Just (LongPollServerSettings {_server = "imv4.vk.com/im1237", _key = "d047cd5b8c3cdf35f3b600ad12e85f3d51f8752c", _ts = 1825389994})
+"28/Dec/2018:12:52:19 +0300" INFO: Handler. Received Message: Message {_messageId = 2177, _fromUser = 940182, _timestamp = 1545990731, _text = "F# C#"}
+"28/Dec/2018:12:52:19 +0300" INFO: updated state: BotState {_lastSentMessageId = 0, _quizState = QuizState {_currentQuestion = Just "Dm", _score = (0,0)}}
+"28/Dec/2018:12:52:26 +0300" INFO: Handler. Received Message: Message {_messageId = 2179, _fromUser = 940182, _timestamp = 1545990738, _text = "Bb Eb Ab"}
+"28/Dec/2018:12:52:26 +0300" INFO: updated state: BotState {_lastSentMessageId = 2178, _quizState = QuizState {_currentQuestion = Just "Dm", _score = (0,1)}}
+"28/Dec/2018:13:51:40 +0300" INFO: Got failed:2, reconnecting to long poll server...
+"28/Dec/2018:13:51:40 +0300" INFO: Connecting to LongPoll server...
+"28/Dec/2018:13:51:40 +0300" INFO: Got initial settings: Just (LongPollServerSettings {_server = "imv4.vk.com/im1237", _key = "196956f929f50ab1ad4e2066597bdd9d738724b1", _ts = 1825390011})
+"2018-12-28T11:03:24.03S" INFO: Connecting to LongPoll server...
+"2018-12-28T11:03:24.03S" INFO: Starting server on port 1337
+"2018-12-28T11:03:25.03S" INFO: Got initial settings: Just (LongPollServerSettings {_server = "imv4.vk.com/im1237", _key = "05dc35835c26bae612bd64c72ac67a01001b3227", _ts = 1825390011})
+"2018-12-28T11:04:39.04S" INFO: Handler. Received Message: Message {_messageId = 2181, _fromUser = 940182, _timestamp = 1545995071, _text = "F# C# G#"}
+"2018-12-28T11:04:39.04S" INFO: updated state: BotState {_lastSentMessageId = 0, _quizState = QuizState {_currentQuestion = Just "C", _score = (0,0)}}
+"2018-12-28T11:04:46.04S" INFO: Handler. Received Message: Message {_messageId = 2183, _fromUser = 940182, _timestamp = 1545995078, _text = "Bb"}
+"2018-12-28T11:04:46.04S" INFO: updated state: BotState {_lastSentMessageId = 2182, _quizState = QuizState {_currentQuestion = Just "C", _score = (0,1)}}
+"2018-12-28T11:04:47.04S" INFO: Handler. Received Message: Message {_messageId = 2185, _fromUser = 940182, _timestamp = 1545995079, _text = "Bb Eb Ab Db"}
+"2018-12-28T11:04:47.04S" INFO: updated state: BotState {_lastSentMessageId = 2184, _quizState = QuizState {_currentQuestion = Just "C", _score = (0,2)}}
+"2018-12-28T11:04:49.04S" INFO: Handler. Received Message: Message {_messageId = 2187, _fromUser = 940182, _timestamp = 1545995081, _text = "Bb Eb"}
+"2018-12-28T11:04:49.04S" INFO: updated state: BotState {_lastSentMessageId = 2186, _quizState = QuizState {_currentQuestion = Just "C", _score = (0,3)}}
+2018-12-28 13:09:00 INFO: Starting server on port 1337
+2018-12-28 13:09:00 INFO: Connecting to LongPoll server...
+2018-12-28 13:09:01 INFO: Got initial settings: Just (LongPollServerSettings {_server = "imv4.vk.com/im1237", _key = "0ee5a671d247efe6f18ed8d6f52de8d8b85e4da9", _ts = 1825390047})
+2018-12-28 13:09:41 INFO: Handler. Received Message: Message {_messageId = 2189, _fromUser = 940182, _timestamp = 1546002573, _text = "-"}
+2018-12-28 13:09:41 INFO: updated state: BotState {_lastSentMessageId = 0, _quizState = QuizState {_currentQuestion = Just "A", _score = (0,0)}}
+2018-12-28 13:09:45 INFO: Handler. Received Message: Message {_messageId = 2191, _fromUser = 940182, _timestamp = 1546002577, _text = "F# C# G#"}
+2018-12-28 13:09:45 INFO: updated state: BotState {_lastSentMessageId = 2190, _quizState = QuizState {_currentQuestion = Just "Ab", _score = (1,1)}}
+2018-12-28 13:09:49 INFO: Handler. Received Message: Message {_messageId = 2193, _fromUser = 940182, _timestamp = 1546002581, _text = "Bb Eb Ab Db"}
+2018-12-28 13:09:49 INFO: updated state: BotState {_lastSentMessageId = 2192, _quizState = QuizState {_currentQuestion = Just "C", _score = (2,2)}}
+2018-12-28 13:09:51 INFO: Handler. Received Message: Message {_messageId = 2195, _fromUser = 940182, _timestamp = 1546002583, _text = "-"}
+2018-12-28 13:09:51 INFO: updated state: BotState {_lastSentMessageId = 2194, _quizState = QuizState {_currentQuestion = Just "Bm", _score = (3,3)}}

@@ -1,21 +1,48 @@
 {-# LANGUAGE RankNTypes #-}
 
 module Service.Logging
-  ( info
+  ( initLogging
+  , info
   , error
-  , processLog
+  -- , test
   ) where
 
-import Bot.Types            (Env, logger)
-import BotPrelude           hiding (log)
-import Control.Lens         ((^.))
-import Control.Monad.Reader (MonadIO, MonadReader, ask, liftIO)
+import           Bot.Types             (Env, logger)
+import           BotPrelude            hiding (log)
+import           Control.Lens          ((^.))
+import           Control.Monad.Reader  (MonadIO, MonadReader, ask, liftIO)
+import qualified Data.ByteString.Char8 as BS
+import           Data.Time.Format      (defaultTimeLocale, formatTime)
 import qualified Utils
 
-processLog :: Text -> IO ()
-processLog t = -- do
-  -- appendFile "log.txt" t
-  putStrLn t
+import           System.Log.FastLogger      (LogType(LogFileNoRotate, LogStdout),
+                                             TimedFastLogger)
+import qualified System.Log.FastLogger      as FastLogger (defaultBufSize,
+                                                           newTimedFastLogger,
+                                                           toLogStr)
+
+logFileName :: FilePath
+logFileName = "log.txt"
+
+-- test :: IO ()
+-- test = do
+--   now <- getCurrentTime
+--   putStrLn $ formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S.%s" now
+
+initLogging :: IO (Text -> IO ())
+initLogging = do
+  -- A console logger
+  (console, _) <- FastLogger.newTimedFastLogger getFormattedTime (LogStdout FastLogger.defaultBufSize)
+  -- A file logger
+  (file, _) <- FastLogger.newTimedFastLogger getFormattedTime (LogFileNoRotate logFileName FastLogger.defaultBufSize)
+  pure $ logWithLoggers [console, file]
+    where
+      -- TODO: Add milliseconds to the time, this is very weird
+      getFormattedTime = BS.pack . formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S" <$> getCurrentTime
+      appendTimeToMessage message time = FastLogger.toLogStr (mconcat [decodeUtf8 time, " ", message, "\n"])
+
+      logWithLoggers :: [TimedFastLogger] -> (Text -> IO ())
+      logWithLoggers loggers msg = mapM_ ($ appendTimeToMessage msg) loggers
 
 class HasLogging a where
   getLog :: a -> (Text -> IO ())
@@ -38,12 +65,7 @@ log :: (MonadReader env m, HasLogging env, MonadIO m)
              -> m ()
 log prefix msg = do
   env <- ask
-  -- TODO: Add time to logs?
-  --t <- fmap formatTime getCurrentTime
   liftIO $ getLog env $ Utils.joinText " "
     [ prefix
     , msg
     ]
---  where
---    formatTime :: UTCTime -> Text
---    formatTime = showT

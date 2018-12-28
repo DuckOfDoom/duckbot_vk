@@ -6,8 +6,6 @@ module Modules.Quiz
   where
 
 import BotPrelude
-import System.IO.Unsafe
-
 import Prelude (lookup, (!!))
 
 import Bot.Types          (Bot, getStateForUser, liftBot, quizState,
@@ -38,7 +36,7 @@ replyToMessage userId text = do
   when (text == "/reset") resetState
 
   userState <- getStateForUser userId
-  case (userState ^. quizState ^. currentQuestion) of
+  case userState ^. quizState ^. currentQuestion of
     Nothing -> do
       newQuestion <- getQuestion
       currScore <- updateState newQuestion identity
@@ -68,16 +66,16 @@ replyToMessage userId text = do
 
     updateState :: Text -> ((Int, Int) -> (Int, Int)) -> Bot (Int, Int)
     updateState newQuestion updateScore = do
-      newSt <- updateStateForUser userId $
+      newSt <- updateStateForUser userId
         (\st -> st & quizState %~
           (\qState -> qState
             & currentQuestion .~ Just newQuestion
             & score %~ updateScore))
-      Log.info ("updated state: " <> showT newSt)
+      Log.info ("Updated state: " <> showT newSt)
       pure (newSt ^. quizState ^. score)
 
     resetState = do
-      _ <- updateStateForUser userId $
+      _ <- updateStateForUser userId
         (\st -> st & quizState .~ defaultState)
       pure ()
 

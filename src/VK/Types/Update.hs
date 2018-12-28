@@ -26,7 +26,7 @@ makeLenses ''Update
 
 instance FromJSON Update where
   parseJSON (Array a) = do
-    uType <- (parseUpdateType $ head a)
+    uType <- parseUpdateType $ head a
     case (uType :: Integer) of
       -- Message goes as follows [0:updateType, 1:message_id, 2:flags, 3:peer_id, 4:timestamp, 5: text ]
       4 -> parseMessage $ (tailSafe . toList) a
