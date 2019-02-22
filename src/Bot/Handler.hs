@@ -12,6 +12,8 @@ import qualified Modules.Quiz as Quiz
 import qualified Modules.ModesHelper as ModesHelper 
 import qualified VK.Requests as VK (sendMessage)
 
+import Data.Attoparsec.Text
+
 import qualified Data.Text as T
 
 handle :: Update -> Bot ()

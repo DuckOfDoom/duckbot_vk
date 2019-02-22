@@ -28,6 +28,7 @@ dependencies:
 - protolude
 - mtl
 - transformers
+- attoparsec
 - aeson
 - aeson-pretty
 - wreq
