@@ -17,13 +17,13 @@ import Data.Attoparsec.Text
 import qualified Data.Text as T
 
 ----------- PARSING
-parseInput :: Text -> (Integer -> Bot ())
-parseInput input = 
+getHandler :: Text -> (Integer -> Bot ())
+getHandler input = 
   case parseOnly (parsers <* endOfInput) input of 
     Right handler -> handler
     Left err -> \userId -> VK.sendMessage userId $ "Не понимаю, о чем ты:\n" <> T.pack err 
   where 
-    parsers = Quiz.parse
+    parsers = asum [Quiz.parseInput]
 
 ----------------------
 
@@ -38,15 +38,14 @@ handle m@Message{..} = do
     Log.info $ "Handler. Received Message: " <> showT m
     -- TODO: Handle with care
     -- getHandler mText userId mText
-    (parseInput mText) userId
-
-      where 
-        getHandler :: Text -> Handler
-        getHandler t = fromMaybe handleDefault $ msum $ map ($ t) 
-          [ handleRoman
-          , handleModes
-          , handleQuiz
-          ]
+    (getHandler mText) userId
+      -- where 
+        -- getHandler :: Text -> Handler
+        -- getHandler t = fromMaybe handleDefault $ msum $ map ($ t) 
+        --   [ handleRoman
+        --   , handleModes
+        --   , handleQuiz
+        --   ]
 
 handle Undefined = pure ()
 
@@ -68,8 +67,8 @@ handleModes t
       getInput (x:y:_) = (x, y)
       getInput vals = ("Непонятный формат:", showT vals)
 
-handleQuiz :: Text -> Maybe Handler
-handleQuiz _ = pure Quiz.replyToMessage 
+-- handleQuiz :: Text -> Maybe Handler
+-- handleQuiz _ = pure Quiz.replyToMessage 
 
 handleRoman :: Text -> Maybe Handler
 handleRoman t 

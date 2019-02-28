@@ -1,8 +1,7 @@
 {-# LANGUAGE QuasiQuotes #-}
 
 module Modules.Quiz
-  ( replyToMessage
-  , parse
+  ( parseInput
   )
   where
 
@@ -24,8 +23,8 @@ import Data.Attoparsec.Text (Parser(..), string)
 
 import qualified Service.Logging as Log (info)
 
-parse :: Parser (Integer -> Bot ())
-parse = do 
+parseInput :: Parser (Integer -> Bot ())
+parseInput = do 
   -- Sort answers to match longes answers first
   let sortedAnswers = sortBy (\a b -> T.length b `compare` T.length a) $ map snd answers
   parsedAnswer <- asum $ map string sortedAnswers
