@@ -2,10 +2,11 @@
 
 module Modules.Quiz
   ( replyToMessage
+  , parse
   )
   where
 
-import BotPrelude
+import BotPrelude hiding (Parser)
 import Prelude (lookup, (!!))
 
 import Bot.Types          (Bot, getStateForUser, liftBot, quizState,
@@ -13,13 +14,22 @@ import Bot.Types          (Bot, getStateForUser, liftBot, quizState,
 import Modules.Quiz.Types (currentQuestion, defaultState, score)
 
 import           Data.List         (nub)
-import qualified Data.Text         as T (toLower)
+import qualified Data.Text         as T (toLower, length)
 import qualified NeatInterpolation as F (text)
 import qualified VK.Requests       as VK (sendMessageWithKeyboard)
 import           VK.Types          (Keyboard)
 import           VK.Types.Utils    (mkKeyboard)
 
+import Data.Attoparsec.Text (Parser(..), string) 
+
 import qualified Service.Logging as Log (info)
+
+parse :: Parser (Integer -> Bot ())
+parse = do 
+  -- Sort answers to match longes answers first
+  let sortedAnswers = sortBy (\a b -> T.length b `compare` T.length a) $ map snd answers
+  parsedAnswer <- asum $ map string sortedAnswers
+  pure ((flip replyToMessage) parsedAnswer)
 
 mkQuestionMessage :: (Show b, Show a) => (a, b) -> Text -> Text
 mkQuestionMessage sc q =

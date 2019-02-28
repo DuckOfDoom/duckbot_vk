@@ -17,6 +17,8 @@ import qualified Data.Text.Encoding       as E
 import           VK.Types.Error           (Error)
 import           VK.Types.Keyboard
 
+import Data.Aeson.Types (Parser(..))
+
 prettifyError :: Error -> Text
 prettifyError e = E.decodeUtf8 $ LBS.toStrict $ encodePretty' conf e
   where

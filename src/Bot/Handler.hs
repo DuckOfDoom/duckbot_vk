@@ -16,6 +16,17 @@ import Data.Attoparsec.Text
 
 import qualified Data.Text as T
 
+----------- PARSING
+parseInput :: Text -> (Integer -> Bot ())
+parseInput input = 
+  case parseOnly (parsers <* endOfInput) input of 
+    Right handler -> handler
+    Left err -> \userId -> VK.sendMessage userId $ "Не понимаю, о чем ты:\n" <> T.pack err 
+  where 
+    parsers = Quiz.parse
+
+----------------------
+
 handle :: Update -> Bot ()
 handle m@Message{..} = do
   let mText = m ^?! text
@@ -26,7 +37,9 @@ handle m@Message{..} = do
   when (_messageId /= lastSent) $ do
     Log.info $ "Handler. Received Message: " <> showT m
     -- TODO: Handle with care
-    getHandler mText userId mText
+    -- getHandler mText userId mText
+    (parseInput mText) userId
+
       where 
         getHandler :: Text -> Handler
         getHandler t = fromMaybe handleDefault $ msum $ map ($ t) 
