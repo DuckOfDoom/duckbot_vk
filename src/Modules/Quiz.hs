@@ -1,34 +1,32 @@
 {-# LANGUAGE QuasiQuotes #-}
 
 module Modules.Quiz
-  ( parseInput
+  ( parser
   )
   where
 
 import BotPrelude hiding (Parser)
-import Prelude (lookup, (!!))
+import Prelude    (lookup, (!!))
 
 import Bot.Types          (Bot, getStateForUser, liftBot, quizState,
                            updateStateForUser)
 import Modules.Quiz.Types (currentQuestion, defaultState, score)
 
 import           Data.List         (nub)
-import qualified Data.Text         as T (toLower, length)
+import qualified Data.Text         as T (length, toLower)
 import qualified NeatInterpolation as F (text)
 import qualified VK.Requests       as VK (sendMessageWithKeyboard)
 import           VK.Types          (Keyboard)
 import           VK.Types.Utils    (mkKeyboard)
 
-import Data.Attoparsec.Text (Parser(..), string) 
+import Data.Attoparsec.Text (Parser, string, endOfInput)
 
 import qualified Service.Logging as Log (info)
 
-parseInput :: Parser (Integer -> Bot ())
-parseInput = do 
-  -- Sort answers to match longes answers first
-  let sortedAnswers = sortBy (\a b -> T.length b `compare` T.length a) $ map snd answers
-  parsedAnswer <- asum $ map string sortedAnswers
-  pure ((flip replyToMessage) parsedAnswer)
+parser :: Parser (Integer -> Bot ())
+parser = do
+  parsedAnswer <- asum (string "/reset" : map ((<* endOfInput) . string) (map snd answers))
+  pure $ replyToMessage parsedAnswer
 
 mkQuestionMessage :: (Show b, Show a) => (a, b) -> Text -> Text
 mkQuestionMessage sc q =
@@ -40,8 +38,8 @@ mkQuestionMessage sc q =
 
 data ScoreOperation = Reset | IncBoth | IncTotal
 
-replyToMessage :: Integer -> Text -> Bot ()
-replyToMessage userId text = do
+replyToMessage :: Text -> Integer -> Bot ()
+replyToMessage text userId = do
   when (text == "/reset") resetState
 
   userState <- getStateForUser userId
@@ -55,10 +53,16 @@ replyToMessage userId text = do
         then do
           newQuestion <- getQuestion
           newScore <- updateState newQuestion (incScore IncBoth)
-          VK.sendMessageWithKeyboard userId ("Правильно! " <> mkQuestionMessage newScore newQuestion) answersKeyboard
+          VK.sendMessageWithKeyboard
+            userId
+            ("Правильно! " <> mkQuestionMessage newScore newQuestion)
+            answersKeyboard
         else do
           newScore <- updateState question (incScore IncTotal)
-          VK.sendMessageWithKeyboard userId ("Неправильно! " <> mkQuestionMessage newScore question) answersKeyboard
+          VK.sendMessageWithKeyboard
+            userId
+            ("Неправильно! " <> mkQuestionMessage newScore question)
+            answersKeyboard
   where
     incScore :: ScoreOperation -> (Int, Int) -> (Int, Int)
     incScore IncBoth (curr, total)  = (curr + 1, total + 1)
@@ -124,5 +128,5 @@ answersKeyboard =
   mkKeyboard
     [ (take 4 . drop 1) answers'
     , (take 4 . drop 5) answers'
-    , take 1 answers'
+    , "/reset" : take 1 answers'
     ]

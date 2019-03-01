@@ -19,11 +19,11 @@ import qualified Data.Text as T
 ----------- PARSING
 getHandler :: Text -> (Integer -> Bot ())
 getHandler input = 
-  case parseOnly (parsers <* endOfInput) input of 
+  case parseOnly parsers input of 
     Right handler -> handler
     Left err -> \userId -> VK.sendMessage userId $ "Не понимаю, о чем ты:\n" <> T.pack err 
   where 
-    parsers = asum [Quiz.parseInput]
+    parsers = asum [Quiz.parser]
 
 ----------------------
 
@@ -31,6 +31,7 @@ handle :: Update -> Bot ()
 handle m@Message{..} = do
   let mText = m ^?! text
   let userId = m ^?! fromUser
+  let handler = getHandler mText
 
   lastSent <- (^. lastSentMessageId) <$> getStateForUser userId
   -- Ignore my own updates
@@ -38,7 +39,7 @@ handle m@Message{..} = do
     Log.info $ "Handler. Received Message: " <> showT m
     -- TODO: Handle with care
     -- getHandler mText userId mText
-    (getHandler mText) userId
+    handler userId
       -- where 
         -- getHandler :: Text -> Handler
         -- getHandler t = fromMaybe handleDefault $ msum $ map ($ t) 
@@ -54,18 +55,18 @@ type Handler = Integer -> Text -> Bot ()
 handleDefault :: Handler
 handleDefault userId _ = VK.sendMessage userId "Не понимаю, о чем ты." 
 
-handleModes :: Text -> Maybe Handler
-handleModes t 
-  | "/mode" `T.isPrefixOf` t && (length . T.words) t >= 2 = Just 
-    (\userId msg -> 
-      case ModesHelper.getMode (getInput $ (drop 1 . T.words) msg) of 
-        Right result -> VK.sendMessage userId result 
-        Left error -> VK.sendMessage userId error
-    )
-  | otherwise = Nothing
-    where 
-      getInput (x:y:_) = (x, y)
-      getInput vals = ("Непонятный формат:", showT vals)
+-- handleModes :: Text -> Maybe Handler
+-- handleModes t 
+--   | "/mode" `T.isPrefixOf` t && (length . T.words) t >= 2 = Just 
+--     (\userId msg -> 
+--       case ModesHelper.getMode (getInput $ (drop 1 . T.words) msg) of 
+--         Right result -> VK.sendMessage userId result 
+--         Left error -> VK.sendMessage userId error
+--     )
+--   | otherwise = Nothing
+--     where 
+--       getInput (x:y:_) = (x, y)
+--       getInput vals = ("Непонятный формат:", showT vals)
 
 -- handleQuiz :: Text -> Maybe Handler
 -- handleQuiz _ = pure Quiz.replyToMessage 

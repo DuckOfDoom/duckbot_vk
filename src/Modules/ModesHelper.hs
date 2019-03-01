@@ -1,10 +1,23 @@
 module Modules.ModesHelper
-  where
+ ( parser
+ )
+ where
 
-import           BotPrelude hiding (note, shift)
+import           Bot.Types  (Bot)
+import           BotPrelude hiding (Parser, note, shift, option)
 import           Data.List  (lookup)
 import qualified Data.Text  as T
 import qualified Utils
+
+import Data.Attoparsec.Text (Parser(..), string, satisfy, inClass, option)
+
+parser :: Parser Text
+parser = do
+  -- One readable note value
+  note <- satisfy (inClass "A-Ga-g")
+  -- maybe a symbol? 
+  symbol <- many $ satisfy (inClass "#b")
+  pure $ T.pack [note] --, symbol]
 
 getMode :: (Text, Text) -> Either Text Text
 getMode (note, mode) =

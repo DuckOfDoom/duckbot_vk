@@ -16,11 +16,11 @@ module Bot.Types
 
 import Bot.Config
 import BotPrelude
-import Control.Lens (makeLenses)
-import Data.Text    (Text)
+import Control.Lens        (makeLenses)
 import Data.HashMap.Strict (HashMap)
+import Data.Text           (Text)
 
-import qualified Data.HashMap.Strict as HM (lookupDefault, insert)
+import qualified Data.HashMap.Strict as HM (insert, lookupDefault)
 
 import qualified Modules.Quiz.Types as Quiz (QuizState(..), defaultState)
 
@@ -35,7 +35,7 @@ defaultState :: BotState
 defaultState = BotState
   { _lastSentMessageId = 0
   , _quizState = Quiz.defaultState
-  } 
+  }
 
 type Bot = StateT (HashMap Integer BotState) (ReaderT Env IO)
 
