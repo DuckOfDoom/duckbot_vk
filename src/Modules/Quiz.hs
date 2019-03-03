@@ -13,7 +13,7 @@ import Bot.Types          (Bot, getStateForUser, liftBot, quizState,
 import Modules.Quiz.Types (currentQuestion, defaultState, score)
 
 import           Data.List         (nub)
-import qualified Data.Text         as T (length, toLower)
+import qualified Data.Text         as T (toLower)
 import qualified NeatInterpolation as F (text)
 import qualified VK.Requests       as VK (sendMessageWithKeyboard)
 import           VK.Types          (Keyboard)

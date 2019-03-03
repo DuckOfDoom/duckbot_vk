@@ -4,72 +4,87 @@ module Modules.ModesHelper
  where
 
 import           Bot.Types  (Bot)
-import           BotPrelude hiding (Parser, note, shift, option)
+import           BotPrelude hiding (Parser, note, option, shift, take)
+import qualified Data.Char  as C
 import           Data.List  (lookup)
 import qualified Data.Text  as T
 import qualified Utils
 
-import Data.Attoparsec.Text (Parser(..), string, satisfy, inClass, option)
+import qualified VK.Requests as VK (sendMessage)
 
-parser :: Parser Text
-parser = do
-  -- One readable note value
-  note <- satisfy (inClass "A-Ga-g")
-  -- maybe a symbol? 
-  symbol <- many $ satisfy (inClass "#b")
-  pure $ T.pack [note] --, symbol]
+import Control.Monad (fail)
 
-getMode :: (Text, Text) -> Either Text Text
-getMode (note, mode) =
-  case (readNote, findMode) of
-    (Just note', Just (_, intervals, comment)) ->
-      let
-        rMode = getMode' note' intervals
-        formattedMode = (Utils.joinText " " . map showNote) rMode
-        in
-          Right $ Utils.joinText "\n" [showNote note' <> " " <> comment, formattedMode]
+import Data.Attoparsec.Text (Parser, anyChar, char, peekChar, space, take,
+                             (<?>))
 
-    (_, Nothing)      -> Left $ "Can't read mode: " <> mode
-    (Nothing, Just _) -> Left $ "Can't read note: " <> note
-    where
-      showNote :: Note -> Text
-      showNote n = T.replace "s" "#" (showT n)
-
-      readNote :: Maybe Note
-      readNote
-       | T.null note = Nothing
-       | T.length note == 1 = (readMaybe . T.unpack . T.toUpper) note :: Maybe Note
-       | otherwise = (readMaybe . replaceSymbol . T.unpack . T.toUpper) note :: Maybe Note
-        where
-          replaceSymbol (x:y)
-            | y == "#" = x:"s"
-            | y == "B" = x:"b"
-            | otherwise = ""
-          replaceSymbol _ = ""
-
-      findMode :: Maybe (Text, [Int], Text)
-      findMode = find (\(name, _, _) -> T.toLower mode `T.isPrefixOf` name)
-        [("major", major, "Ionian - Major")
-        ,("ionian", major, "Ionian - Major")
-        ,("dorian", shift 1 major, "Dorian - Minor with a natural 6")
-        ,("phrygian", shift 2 major, "Phrygian - Minor with a b2")
-        ,("lydian", shift 3 major, "Lydian - Major with a #4")
-        ,("mixolydian", shift 4 major, "Mixolydian - Major with a b7")
-        ,("aeolian", shift 5 major, "Aeolian - Minor")
-        ,("minor", shift 5 major, "Aeolian - Minor")
-        ,("locrian", shift 6 major, "Locrian - Minor with b2 and b5")
-        ]
+modes :: [(Text, [Int], Text)]
+modes =
+  [("major", major, "Ionian - Major")
+  ,("ionian", major, "Ionian - Major")
+  ,("dorian", shift 1 major, "Dorian - Minor with a natural 6")
+  ,("phrygian", shift 2 major, "Phrygian - Minor with a b2")
+  ,("lydian", shift 3 major, "Lydian - Major with a #4")
+  ,("mixolydian", shift 4 major, "Mixolydian - Major with a b7")
+  ,("aeolian", shift 5 major, "Aeolian - Minor")
+  ,("minor", shift 5 major, "Aeolian - Minor")
+  ,("locrian", shift 6 major, "Locrian - Minor with b2 and b5")
+  ]
 
 data Note = C | Cs | Db | D | Ds | Eb | E | F | Fs | Gb | G | Gs | Ab | A | As | Bb | B
   deriving (Show, Read, Eq)
 
-getMode' :: Note -> [Int] -> [Note]
-getMode' key ints
+parser :: Parser (Integer -> Bot ())
+parser = do
+  note <- parseNote <?> "Note parser"
+  _ <- space
+  mode <- parseMode <?> "Mode parser"
+  pure (\userId -> VK.sendMessage userId (mkResponse note mode))
+
+parseNote :: Parser Note
+parseNote = do
+  note <- anyChar
+  maybeAccidental <- peekChar
+  accidental <- case maybeAccidental of
+    Just _  -> Just <$> (char '#' <|> char 'b')
+    Nothing -> pure Nothing
+  case readNote (C.toUpper note) accidental of
+    Nothing -> fail $ T.unpack ("Can't parse note" <> show note)
+    Just n  -> pure n
+  where
+    readNote :: Char -> Maybe Char -> Maybe Note
+    readNote note accidental =
+      case accidental of
+        Just a  -> readMaybe [note, replaceSharp a]
+        Nothing -> readMaybe [note]
+      where
+        replaceSharp x = if x == '#' then 's' else x
+
+parseMode :: Parser ([Int], Text)
+parseMode = do
+  modeInput <- take 3
+  let
+    foundMode = find (\(name, _, _) -> T.toLower modeInput `T.isPrefixOf` name) modes
+  case foundMode of
+    Nothing -> fail $ T.unpack ("Can't parse mode '" <> modeInput <> "'")
+    Just (_, intervals, comment) -> pure (intervals, comment)
+
+mkResponse :: Note -> ([Int], Text) -> Text
+mkResponse note (intervals, comment) =
+  let mode = mkMode note intervals
+      formattedMode = (Utils.joinText " " . map showNote) mode
+    in
+      Utils.joinText "\n" [showNote note <> " " <> comment, formattedMode]
+  where
+      showNote :: Note -> Text
+      showNote n = T.replace "s" "#" (showT n)
+
+mkMode :: Note -> [Int] -> [Note]
+mkMode key intervals
   | isSharpKey key = map convertFlat mode
   | isFlatKey key = map convertSharp mode
   | otherwise = mode
   where
-    mode = buildMode ints getScaleForKey []
+    mode = buildMode intervals getScaleForKey []
     -- Recursively builds a mode from a scale by shifting it by intervals from the list
     buildMode :: [Int] -> [Note] -> [Note] -> [Note]
     buildMode [] _ result = reverse result
