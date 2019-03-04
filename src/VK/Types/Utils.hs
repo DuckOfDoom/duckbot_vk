@@ -7,15 +7,18 @@ module VK.Types.Utils
   )
   where
 
-import           BotPrelude
-import           Data.Aeson.Encode.Pretty (Config(..), Indent(..),
-                                           NumberFormat(..), encodePretty',
-                                           keyOrder)
-import qualified Data.ByteString.Lazy     as LBS (toStrict)
-import qualified Data.HashMap.Strict      as HM
-import qualified Data.Text.Encoding       as E
-import           VK.Types.Error           (Error)
-import           VK.Types.Keyboard
+import BotPrelude
+import Data.Aeson.Encode.Pretty (Config(..), Indent(..), NumberFormat(..),
+                                 encodePretty', keyOrder)
+import Data.Aeson.Types         (Parser)
+
+import qualified Data.ByteString.Lazy as LBS (toStrict)
+import qualified Data.HashMap.Strict  as HM
+import qualified Data.Text.Encoding   as E
+
+
+import VK.Types.Error    (Error)
+import VK.Types.Keyboard
 
 prettifyError :: Error -> Text
 prettifyError e = E.decodeUtf8 $ LBS.toStrict $ encodePretty' conf e

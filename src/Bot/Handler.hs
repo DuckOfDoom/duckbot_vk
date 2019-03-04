@@ -5,7 +5,7 @@ module Bot.Handler
 
 import VK.Types.Update (Update(..), fromUser, text)
 import Bot.Types (Bot, liftBot, lastSentMessageId, getStateForUser)
-import BotPrelude hiding (handle, Parser)
+import BotPrelude hiding (handle)
 
 import qualified Service.Logging as Log (info)
 import qualified Modules.Quiz as Quiz 

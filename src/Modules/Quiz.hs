@@ -5,23 +5,23 @@ module Modules.Quiz
   )
   where
 
-import BotPrelude hiding (Parser)
+import BotPrelude
 import Prelude    (lookup, (!!))
 
 import Bot.Types          (Bot, getStateForUser, liftBot, quizState,
                            updateStateForUser)
 import Modules.Quiz.Types (currentQuestion, defaultState, score)
 
-import           Data.List         (nub)
+import Data.List      (nub)
+import VK.Types       (Keyboard)
+import VK.Types.Utils (mkKeyboard)
+
 import qualified Data.Text         as T (toLower)
 import qualified NeatInterpolation as F (text)
+import qualified Service.Logging   as Log (info)
 import qualified VK.Requests       as VK (sendMessageWithKeyboard)
-import           VK.Types          (Keyboard)
-import           VK.Types.Utils    (mkKeyboard)
 
-import Data.Attoparsec.Text (Parser, string, endOfInput)
-
-import qualified Service.Logging as Log (info)
+import Data.Attoparsec.Text (Parser, endOfInput, string)
 
 parser :: Parser (Integer -> Bot ())
 parser = do

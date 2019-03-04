@@ -11,8 +11,8 @@ import Data.Aeson   as RE (FromJSON, ToJSON, Value(..), object, parseJSON,
                            toJSON, withObject, withScientific, (.:), (.:?),
                            (.=))
 
-import Data.Aeson.Encode.Pretty as RE (encodePretty)
-import Data.Aeson.Types         as RE (Parser)
+-- import Data.Aeson.Encode.Pretty as RE (encodePretty)
+-- import Data.Aeson.Types         as RE (Parser)
 import Data.HashMap.Strict      as RE (HashMap)
 
 import Control.Concurrent.MVar as RE ()

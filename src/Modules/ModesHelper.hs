@@ -3,14 +3,15 @@ module Modules.ModesHelper
  )
  where
 
-import           Bot.Types  (Bot)
-import           BotPrelude hiding (Parser, note, option, shift, take)
-import qualified Data.Char  as C
-import           Data.List  (lookup)
-import qualified Data.Text  as T
-import qualified Utils
+import Bot.Types  (Bot)
+import BotPrelude hiding (note, option, shift, take)
+import Data.List  (lookup)
 
+import qualified Data.Char   as C
+import qualified Data.Text   as T
 import qualified VK.Requests as VK (sendMessage)
+
+import qualified Utils
 
 import Control.Monad (fail)
 
