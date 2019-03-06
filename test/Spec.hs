@@ -1,6 +1,12 @@
 import BotPrelude
 
+import Test.Hspec
+
 import qualified JSONTests
+import qualified SlackEmotesTests
 
 main :: IO ()
-main = JSONTests.run
+main = 
+  hspec $ do 
+    JSONTests.spec
+    SlackEmotesTests.spec
