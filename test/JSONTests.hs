@@ -14,9 +14,9 @@ spec :: Spec
 spec = --do
   -- putStrLn $ showT $ LBS.toStrict $ encode $ ([fromList [("herp", "derp")], fromList [("hey", "wat")]] :: [HashMap Text Text])
     describe "JSON parsing" $ do
-      it "parses Error" $
+      it "Parses Error" $
         (eitherParse errorJSON :: Either Error LongPollServerSettings) `shouldBe` Left (Error 100 "herp" [fromList [("herp", "derp")], fromList [("hey", "wat")]])
-      it "parses LongPollServerSettings" $
+      it "Parses LongPollServerSettings" $
         (eitherParse lpsRequestJSON :: Either Error LongPollServerSettings) `shouldBe` Right (LongPollServerSettings "serverValue" "keyValue" 100500)
   where
     errorJSON = "{\"error\":{\"error_code\":100, \"error_msg\":\"herp\", \"request_params\": [{\"herp\":\"derp\"}, {\"hey\": \"wat\"}]}}"

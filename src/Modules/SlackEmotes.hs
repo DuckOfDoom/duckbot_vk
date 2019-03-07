@@ -1,6 +1,9 @@
 module Modules.SlackEmotes 
 ( parser
+ -- For tests
 , inputParser
+, replaceChars
+, mkLetter
 , zipLetters
 )
 where
@@ -8,9 +11,11 @@ where
 import Bot.Types  (Bot)
 
 import BotPrelude 
+import Data.HashMap.Strict (fromList, lookup) 
 
 import Data.Attoparsec.Text (Parser, many1, satisfy, inClass, string, space, (<?>))
-import Data.Text as T
+import qualified Data.Text as T
+-- import Data.Char as C
 
 parser :: Parser (Integer -> Bot ())
 parser = undefined
@@ -31,5 +36,28 @@ zipLetters :: [[Text]] -> [[Text]] -> [[Text]]
 zipLetters (x:xs) (y:ys) = (x ++ [" "] ++ y) : zipLetters xs ys
 zipLetters _ _ = []
 
--- mkLetter :: Char -> [Text]
--- mkLetter = 
+replaceChars :: Text -> Text -> [[Text]] -> [[Text]]
+replaceChars empt filled = (map . map) replaceChars'
+  where
+    replaceChars' i = 
+      case i of 
+        " " -> empt
+        "#" -> filled
+        _ -> i
+
+mkLetter :: Char -> Text -> Text -> Maybe [[Text]]
+mkLetter c empty' filled' = 
+  case lookup c letters of 
+    Nothing -> Nothing
+    Just t -> Just (replaceChars empty' filled' t)
+  
+letters :: HashMap Char [[Text]]
+letters = fromList
+  [('a'
+  ,[[" "," ","#"," "," "]
+   ,[" ","#"," ","#"," "]
+   ,["#"," "," "," ","#"]
+   ,["#","#","#","#","#"]
+   ,["#"," "," "," ","#"]]
+   )
+  ]
