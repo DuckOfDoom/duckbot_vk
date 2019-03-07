@@ -4,7 +4,7 @@ module SlackEmotesTests
 import BotPrelude
 import Test.Hspec
 
-import Modules.SlackEmotes (replaceChars, zipLetters, inputParser)
+import Modules.SlackEmotes.Internal (replaceChars, zipLetters, inputParser)
 import Data.Attoparsec.Text (parseOnly)
 
 spec :: Spec

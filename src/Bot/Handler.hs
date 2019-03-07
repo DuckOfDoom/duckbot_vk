@@ -10,6 +10,7 @@ import BotPrelude hiding (handle)
 import qualified Service.Logging as Log (info)
 import qualified Modules.Quiz as Quiz 
 import qualified Modules.ModesHelper as ModesHelper 
+import qualified Modules.SlackEmotes as SlackEmotes 
 import qualified VK.Requests as VK (sendMessage)
 
 import Data.Attoparsec.Text 
@@ -20,11 +21,12 @@ getHandler :: Text -> (Integer -> Bot ())
 getHandler input = 
   case parseOnly inputParser input of 
     Right handler -> handler
-    Left err -> \userId -> VK.sendMessage userId $ "Невалидный ввод:\n" <> T.pack err 
+    Left err -> \userId -> VK.sendMessage userId $ "Неподходящий ввод. Ошибка:\n" <> T.pack err 
   where 
    inputParser = asum
-      [ Quiz.parser
-      , ModesHelper.parser
+      [ Quiz.parser 
+      , ModesHelper.parser 
+      , SlackEmotes.parser
       , parseRoman
       ]
 
