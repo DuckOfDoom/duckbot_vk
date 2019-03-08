@@ -17,5 +17,5 @@ parser =
   do
     (_, empty', filled') <- inputParser
     endOfInput
-    let out = render <$> mkLetter 'a' empty' filled'
+    let out = render $ mkLetter 'a' empty' filled'
     pure (\userId -> VK.sendMessage userId (showT out))

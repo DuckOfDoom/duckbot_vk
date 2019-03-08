@@ -16,8 +16,9 @@ spec = describe "Module: SlackEmotes" $ do
 inputParsing :: Spec
 inputParsing = 
   describe "inputParser" $ do
-    it "Parses input correctly" $ 
-      parseOnly inputParser "text :monkas: :hey_yo:" `shouldBe` Right ("text", ":monkas:", ":hey_yo:")
+    it "Parses input correctly" $ do
+      parseOnly inputParser "a :monkas: :hey_yo:" `shouldBe` Right ("a", ":monkas:", ":hey_yo:")
+      parseOnly inputParser "a :monkas: " `shouldBe` Right ("a", ":monkas:", " ")
     it "Does not parse input with special symbols" $ 
       parseOnly inputParser "text text2" `shouldSatisfy` isLeft
     it "Does not parse incorrect input" $ do
