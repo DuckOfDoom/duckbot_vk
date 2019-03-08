@@ -23,6 +23,11 @@ import System.Random as RE (randomIO, randomRIO)
 import qualified Data.Text      as T
 import qualified Data.Text.Lazy as LT
 
+-- fold without initial value
+fold0 :: (a -> a -> a) -> [a] -> a
+fold0 f (x:xs) = foldl f x xs
+fold0 _ _ = panic "Empty list or singleton"
+
 getCurrentTime :: MonadIO m => m UTCTime
 getCurrentTime = liftIO Data.Time.getCurrentTime
 

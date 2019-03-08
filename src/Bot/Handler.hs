@@ -18,17 +18,35 @@ import Data.Attoparsec.Text
 import qualified Data.Text as T
 
 getHandler :: Text -> (Integer -> Bot ())
-getHandler input = 
-  case parseOnly inputParser input of 
-    Right handler -> handler
-    Left err -> \userId -> VK.sendMessage userId $ "Неподходящий ввод. Ошибка:\n" <> T.pack err 
+getHandler input = processParsedResult (parse inputParser input)
   where 
-   inputParser = asum
+    inputParser = asum
       [ Quiz.parser <?> "Quiz.parser"
       , ModesHelper.parser <?> "ModesHelper.parser"
       , SlackEmotes.parser <?> "SlackEmotes.parser"
       , parseRoman <?> "Roman parser"
       ]
+
+    processParsedResult result = 
+      case result of 
+        Partial f -> processParsedResult (f T.empty)
+        Done _ handler -> handler
+        Fail remainingInput contexts err -> \userId -> 
+          let
+            msg = T.unlines $ 
+              [ "Не удалось распарсить ввод."
+              , ""
+              , "Остаток ввода:"
+              , remainingInput
+              , ""
+              , "Что сломалось: "
+              ] ++ map T.pack contexts ++ 
+              [ ""
+              , "Ошибка:"
+              , T.pack err
+              ]
+            in
+          VK.sendMessage userId msg
 
 handle :: Update -> Bot ()
 handle m@Message{..} = do
