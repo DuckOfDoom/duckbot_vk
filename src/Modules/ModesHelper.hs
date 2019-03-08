@@ -37,8 +37,7 @@ data Note = C | Cs | Db | D | Ds | Eb | E | F | Fs | Gb | G | Gs | Ab | A | As |
 parser :: Parser (Integer -> Bot ())
 parser = do
   note <- parseNote <?> "Note parser"
-  _ <- space
-  mode <- parseMode <?> "Mode parser"
+  mode <- space >> parseMode <?> "Mode parser"
   pure (\userId -> VK.sendMessage userId (mkResponse note mode))
 
 parseNote :: Parser Note

@@ -21,11 +21,11 @@ import qualified NeatInterpolation as F (text)
 import qualified Service.Logging   as Log (info)
 import qualified VK.Requests       as VK (sendMessageWithKeyboard)
 
-import Data.Attoparsec.Text (Parser, endOfInput, string)
+import Data.Attoparsec.Text (Parser, endOfInput, string, (<?>))
 
 parser :: Parser (Integer -> Bot ())
 parser = do
-  parsedAnswer <- asum (string "/reset" : map ((<* endOfInput) . string) (map snd answers))
+  parsedAnswer <- asum (string "/reset" : map ((<* endOfInput) . string) (map snd answers)) <?> "Input"
   pure $ replyToMessage parsedAnswer
 
 mkQuestionMessage :: (Show b, Show a) => (a, b) -> Text -> Text

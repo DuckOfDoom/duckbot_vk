@@ -24,10 +24,10 @@ getHandler input =
     Left err -> \userId -> VK.sendMessage userId $ "Неподходящий ввод. Ошибка:\n" <> T.pack err 
   where 
    inputParser = asum
-      [ Quiz.parser 
-      , ModesHelper.parser 
-      , SlackEmotes.parser
-      , parseRoman
+      [ Quiz.parser <?> "Quiz.parser"
+      , ModesHelper.parser <?> "ModesHelper.parser"
+      , SlackEmotes.parser <?> "SlackEmotes.parser"
+      , parseRoman <?> "Roman parser"
       ]
 
 handle :: Update -> Bot ()
