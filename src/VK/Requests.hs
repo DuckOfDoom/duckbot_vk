@@ -25,10 +25,11 @@ import Network.Wreq (param)
 import qualified Service.Logging     as Log (error)
 import qualified Service.UrlComposer as Url (messagesGetLongPollServer,
                                              messagesSend, mkLongPollServerUrl)
-import qualified Service.Wreq        as Wreq (Options, defaults, getWith)
+import qualified Service.Wreq        as Wreq (Options, defaults, getWith, postWith)
 
-import Data.ByteString.Lazy as LBS
-import Data.Text.Encoding   as T
+import qualified Data.ByteString.Lazy as LBS
+import qualified Data.Text.Encoding   as TE
+import qualified Data.Text as T
 
 import NeatInterpolation
 
@@ -85,7 +86,7 @@ sendMessageInternal userId msg opts = do
   result <- Wreq.getWith url $ opts
       & param "user_id" .~ [showT userId]
       & param "peer_id" .~ [showT userId]
-      & param "message" .~ [msg]
+      & param "message" .~ [truncateMessageIfNeeded msg]
   messageId <- maybe (pure Nothing) (parse url) result :: Bot (Maybe MessageId)
   case messageId of
     Just mId -> updateState mId
@@ -95,6 +96,15 @@ sendMessageInternal userId msg opts = do
     updateState messageId = do
       _ <- updateStateForUser userId (\st -> st & lastSentMessageId .~ getId messageId)
       pure ()
+
+    messageLengthLimit = 3912 -- Found experimentally
+    truncateMessageIfNeeded :: Text -> Text
+    truncateMessageIfNeeded m 
+      | T.length m <= messageLengthLimit = m
+      | otherwise = 
+        let message = "Макс. размер соообщения - " <> showT messageLengthLimit <> " символов. Сообщение будет обрезано.\n"
+        in
+          message <> (T.take (messageLengthLimit - T.length message) m)
 
 -- Parses with outputting protocol errors or parsing errors to log
 parse :: FromJSON a => Text -> LBS.ByteString -> Bot (Maybe a)
@@ -115,7 +125,7 @@ eitherParse bs =
           Just r  -> Right r
           Nothing -> Left parsingError
     where
-      parsingError = ParsingError "Failed to parse JSON" (T.decodeUtf8 $ LBS.toStrict bs)
+      parsingError = ParsingError "Failed to parse JSON" (TE.decodeUtf8 $ LBS.toStrict bs)
 
 logError :: Error -> Text -> Bot ()
 logError ParsingError{..} methodName =
