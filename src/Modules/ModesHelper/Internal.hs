@@ -2,6 +2,7 @@ module Modules.ModesHelper.Internal
   ( parseNote
   , parseMode
   , mkResponse
+  , modes
   , Note(..)
   ) where
 
@@ -70,8 +71,8 @@ mkResponse note (intervals, comment) =
     in
       Utils.joinText "\n" [showNote note <> " " <> comment, formattedMode]
   where
-      showNote :: Note -> Text
-      showNote n = T.replace "s" "#" (showT n)
+    showNote :: Note -> Text
+    showNote n = T.replace "s" "#" (showT n)
 
 mkMode :: Note -> [Int] -> [Note]
 mkMode key intervals
