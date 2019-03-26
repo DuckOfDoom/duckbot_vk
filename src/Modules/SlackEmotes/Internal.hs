@@ -47,7 +47,7 @@ zipLetters separator = fold0 zip2
     zip2 (x:xs) (y:ys) = (x ++ [separator] ++ y) : zip2 xs ys
     zip2 _ _ = []
 
--- Replace # and spaces in l with 
+-- Replace # and spaces in letter with desired symbols
 replaceChars :: Letter -> Text -> Text -> Letter
 replaceChars letter filled empty = (map . map) replaceChars' letter
   where

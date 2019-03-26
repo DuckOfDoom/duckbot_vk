@@ -50,6 +50,7 @@ default-extensions:
 - LambdaCase
 - PartialTypeSignatures
 - RecordWildCards
+- QuasiQuotes
 
 library:
   source-dirs: src

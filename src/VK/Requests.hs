@@ -1,6 +1,3 @@
-{-# LANGUAGE QuasiQuotes     #-}
-{-# LANGUAGE RecordWildCards #-}
-
 module VK.Requests
   ( getLongPollingServer
   , longPoll
@@ -25,13 +22,12 @@ import Network.Wreq (param)
 import qualified Service.Logging     as Log (error)
 import qualified Service.UrlComposer as Url (messagesGetLongPollServer,
                                              messagesSend, mkLongPollServerUrl)
-import qualified Service.Wreq        as Wreq (Options, defaults, getWith, postWith)
+import qualified Service.Wreq        as Wreq (Options, defaults, getWith)
 
 import qualified Data.ByteString.Lazy as LBS
 import qualified Data.Text.Encoding   as TE
 import qualified Data.Text as T
-
-import NeatInterpolation
+import qualified NeatInterpolation as F
 
 defaultOpts :: Bot Wreq.Options
 defaultOpts = do
@@ -129,11 +125,11 @@ eitherParse bs =
 
 logError :: Error -> Text -> Bot ()
 logError ParsingError{..} methodName =
-  Log.error [text|'Request: ${methodName}'
+  Log.error [F.text|'Request: ${methodName}'
     Failed to parse JSON:
     ${_json}|]
 logError e@Error{..} methodName = do
   let source = Utils.prettifyError e
-  Log.error [text|'Request ${methodName}'
+  Log.error [F.text|'Request ${methodName}'
     Received error:
     ${source}|]

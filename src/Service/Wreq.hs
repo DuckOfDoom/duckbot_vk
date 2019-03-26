@@ -1,6 +1,5 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE QuasiQuotes       #-}
 
 module Service.Wreq
   ( getWith
@@ -14,14 +13,12 @@ import Control.Exception    (SomeException, try)
 import Data.ByteString.Lazy as LBS (ByteString)
 import Network.Wreq         (Options, defaults, param, responseBody)
 import Network.Wreq.Types   (Postable)
+import Control.Monad.Trans.Maybe (MaybeT, runMaybeT)
 
 import qualified Data.Text    as T (unpack)
 import qualified Network.Wreq as Wreq (Response, getWith, postWith)
-
 import qualified Service.Logging as Log (error)
-
-import Control.Monad.Trans.Maybe (MaybeT, runMaybeT)
-import NeatInterpolation         (text)
+import qualified NeatInterpolation as F 
 
 class (MonadIO m, MonadReader Env m) => MonadWreq m
 instance MonadWreq Bot where
@@ -43,7 +40,7 @@ handleException source action = do
   case result of
     Left ex -> do
       let exMessage = showT ex
-      Log.error [text|Caught exception when trying to ${source}:
+      Log.error [F.text|Caught exception when trying to ${source}:
       ${exMessage}|]
       mzero
     Right r -> pure (r ^. responseBody)

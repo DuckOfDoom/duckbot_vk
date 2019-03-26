@@ -1,5 +1,3 @@
-{-# LANGUAGE QuasiQuotes #-}
-
 module Service.UrlComposer
   ( messagesGetLongPollServer
   , messagesSend
@@ -7,7 +5,7 @@ module Service.UrlComposer
   ) where
 
 import BotPrelude
-import NeatInterpolation (text)
+import qualified NeatInterpolation as F
 
 messagesGetLongPollServer :: Text
 messagesGetLongPollServer = composeApi "messages.getLongPollServer"
@@ -19,4 +17,4 @@ mkLongPollServerUrl :: Text -> Text
 mkLongPollServerUrl server = "https://" <> server
 
 composeApi :: Text -> Text
-composeApi method = [text|https://api.vk.com/method/${method}|]
+composeApi method = [F.text|https://api.vk.com/method/${method}|]

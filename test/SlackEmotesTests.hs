@@ -1,26 +1,15 @@
 {-# LANGUAGE FlexibleInstances #-}
 -- Guess i really need that instance
-{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module SlackEmotesTests
 ( spec ) where
 
 import BotPrelude
 import Test.Hspec
+import ParsingTestUtils
 
 import Modules.SlackEmotes.Internal (replaceChars, zipLetters, inputParser)
-import Data.Attoparsec.Text (parse, parseOnly, IResult(..))
 import qualified Data.Text as T
-
-instance Eq a => Eq (IResult Text a) where
-  (Done i1 r1) == (Done i2 r2) = i1 == i2 && r1 == r2
-  (Fail i1 c1 e1) == (Fail i2 c2 e2) = i1 == i2 && c1 == c2 && e1 == e2
-
-  -- These two are added so that Parial results can be fully evaluated for testing
-  x == (Partial f) = x == f ""
-  (Partial f) == x = f "" == x
-
-  _ == _ = False
 
 spec :: Spec
 spec = describe "Module: SlackEmotes" $ do
@@ -30,20 +19,21 @@ spec = describe "Module: SlackEmotes" $ do
 
 inputParsing :: Spec
 inputParsing = 
-  describe "inputParser" $ do
-    it "Parses input correctly" $ do
-      let input = "The quick brown fox jumps over the lazy dog"
-      parse inputParser (input <> " :monkas: :hey_yo:") `shouldBe` Done "" (T.toLower input, ":monkas:", ":hey_yo:")
-      -- should treat any case as lower (we have only one alphabet anyways)
-      parse inputParser (T.toUpper input <> " :monkas: :hey_yo:") `shouldBe` Done "" (T.toLower input, ":monkas:", ":hey_yo:")
-      parse inputParser "a :monkas:" `shouldBe` Done "" ("a", ":monkas:", ":white_small_square:")
-    it "Does not parse input with special symbols" $ 
-      parseOnly inputParser "text text2" `shouldSatisfy` isLeft
-    it "Does not parse incorrect input" $ do
-      parseOnly inputParser "derp" `shouldSatisfy` isLeft
-      parseOnly inputParser "text text2" `shouldSatisfy` isLeft
-      parseOnly inputParser "text text1 text2" `shouldSatisfy` isLeft
-      parseOnly inputParser "" `shouldSatisfy` isLeft
+  describe "inputParser" $ 
+    let parse i = (inputParser, i) in do
+      it "Parses input correctly" $ 
+        let input = "The quick brown fox jumps over the lazy dog" in do
+          parse (input <> " :monkas: :hey_yo:") `isParsedTo` (T.toLower input, ":monkas:", ":hey_yo:")
+        -- should treat any case as lower (we have only one alphabet anyways)
+          parse (T.toUpper input <> " :monkas: :hey_yo:") `isParsedTo` (T.toLower input, ":monkas:", ":hey_yo:")
+          parse "a :monkas:" `isParsedTo` ("a", ":monkas:", ":white_small_square:")
+      it "Does not parse input with special symbols" $ 
+        fails $ parse "#123 :text: :text2:" 
+      it "Does not parse incorrect input" $ do
+        parse "derp" & fails
+        parse "text text2" & fails
+        parse "text text1 text2" & fails
+        parse "" & fails
 
 replacingCharacters :: Spec
 replacingCharacters = 

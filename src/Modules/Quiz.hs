@@ -1,5 +1,3 @@
-{-# LANGUAGE QuasiQuotes #-}
-
 module Modules.Quiz
   ( parser
   )
@@ -17,9 +15,9 @@ import VK.Types       (Keyboard)
 import VK.Types.Utils (mkKeyboard)
 
 import qualified Data.Text         as T (toLower)
-import qualified NeatInterpolation as F (text)
 import qualified Service.Logging   as Log (info)
 import qualified VK.Requests       as VK (sendMessageWithKeyboard)
+import qualified NeatInterpolation as F
 
 import Data.Attoparsec.Text (Parser, endOfInput, string, (<?>))
 
