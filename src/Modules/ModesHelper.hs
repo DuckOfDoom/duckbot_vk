@@ -9,10 +9,9 @@ import Bot.Types  (Bot)
 import BotPrelude hiding (note, option, shift, take)
 import qualified VK.Requests as VK (sendMessage)
 
-import Data.Attoparsec.Text (Parser, space, (<?>))
+import Data.Attoparsec.Text (Parser)
 
 parser :: Parser (Integer -> Bot ())
 parser = do
-  note <- parseNote <?> "Note parser"
-  mode <- space >> parseMode <?> "Mode parser"
+  (note, mode) <- parseInput
   pure (\userId -> VK.sendMessage userId (mkResponse note mode))

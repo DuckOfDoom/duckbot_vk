@@ -4,19 +4,19 @@ module ModesHelperTests
 import BotPrelude
 import Test.Hspec
 
-import ParsingTestUtils (isParsedTo, fails, doesNotFail)
-import Modules.ModesHelper.Internal (parseNote, parseMode, modes, Note(..))
+import Modules.ModesHelper.Internal (parseInput, parseNote, parseMode, modes, Note(..))
+import ParsingTestUtils (isParsedTo, fails)
 
 import qualified Data.Text as T
 
 spec :: Spec
-spec = describe "Module: ModesHelper" $ do
+spec = describe "Module: ModesHelper" $ 
   inputParsing
 
 inputParsing :: Spec 
-inputParsing = 
-  describe "parseNote" $ do
-  let parse t = (parseNote, t) in do
+inputParsing = do
+  describe "parseNote" $ 
+    let parse t = (parseNote, t) in do
     it "Parses notes correctly" $ do
       parse "C" `isParsedTo` C
       parse "f" `isParsedTo` F
@@ -24,7 +24,7 @@ inputParsing =
       parse "g#" `isParsedTo` Gs
       parse "Eb" `isParsedTo` Eb
       parse "db" `isParsedTo` Db
-    it "Doesn't parse invalid input" $ do
+    it "Fails parsing invalid input" $ do
       parse " " & fails
       parse "zb" & fails
       parse "123" & fails
@@ -32,6 +32,18 @@ inputParsing =
   describe "parseMode" $ 
     let parse t = (parseMode, t) in do
     it "Parses modes correctly" $ 
-      mapM_ (\(m, _, _) -> parse (T.take 3 m) & doesNotFail) modes
-      -- parse "dor" `isParsedTo` 
-    
+      mapM_ (\(m, ints, comment) -> parse (T.take 3 m) `isParsedTo` (ints, comment)) modes
+    it "Fails parsing invalid input" $ do
+      parse "" & fails
+      parse " " & fails
+      parse "derp" & fails
+
+  describe "parseInput" $ 
+    let parse t = (parseInput, t) in do
+    it "Parses whole input without accidentals" $ do
+      parse "c maj" `isParsedTo` (C, ([2,2,1,2,2,2,1], "Ionian - Major"))
+      parse "F mix" `isParsedTo` (F, ([2,2,1,2,2,1,2], "Mixolydian - Major with a b7"))
+    it "Parses whole input with accidentals" $ do
+      parse "Bb min" `isParsedTo` (Bb, ([2,1,2,2,1,2,2], "Aeolian - Minor"))
+      parse "G# phr" `isParsedTo` (Gs, ([1,2,2,2,1,2,2], "Phrygian - Minor with a b2"))
+-- it "Fails parsing invalid input"

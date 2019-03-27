@@ -39,9 +39,6 @@ getHandler input = processParsedResult (parse inputParser input)
               , "Остаток ввода:"
               , remainingInput
               , ""
-              , "Что сломалось: "
-              ] ++ map T.pack contexts ++ 
-              [ ""
               , "Ошибка:"
               , T.pack err
               ]

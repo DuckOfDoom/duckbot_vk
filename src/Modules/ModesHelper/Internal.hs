@@ -1,5 +1,6 @@
 module Modules.ModesHelper.Internal
-  ( parseNote
+  ( parseInput
+  , parseNote
   , parseMode
   , mkResponse
   , modes
@@ -11,7 +12,7 @@ import BotPrelude hiding (note, option, shift, take)
 import Data.List  (lookup)
 import Control.Monad (fail)
 
-import Data.Attoparsec.Text (Parser, anyChar, char, peekChar, take)
+import Data.Attoparsec.Text (Parser, anyChar, char, peekChar, take, space)
 
 import qualified Data.Char   as C
 import qualified Data.Text   as T
@@ -33,16 +34,24 @@ modes =
 data Note = C | Cs | Db | D | Ds | Eb | E | F | Fs | Gb | G | Gs | Ab | A | As | Bb | B
   deriving (Show, Read, Eq)
 
+-- Tries to parse whole input (note with or without accidental and mode)
+parseInput :: Parser (Note, ([Int], Text))
+parseInput = do
+  note <- parseNote 
+  mode <- space >> parseMode 
+  pure (note, mode)
+
 -- Tries to read a note with or without accidental
 parseNote :: Parser Note
 parseNote = do
   note <- anyChar
   maybeAccidental <- peekChar
   accidental <- case maybeAccidental of
+    Just ' ' -> pure Nothing
     Just _  -> Just <$> (char '#' <|> char 'b')
     Nothing -> pure Nothing
   case readNote (C.toUpper note) accidental of
-    Nothing -> fail $ T.unpack ("Can't parse note" <> show note)
+    Nothing -> fail $ T.unpack ("Can't parse note" <> show note <> show accidental)
     Just n  -> pure n
   where
     readNote :: Char -> Maybe Char -> Maybe Note

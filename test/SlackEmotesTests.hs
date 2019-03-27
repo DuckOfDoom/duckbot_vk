@@ -47,7 +47,7 @@ replacingCharacters =
 zippingLetters :: Spec
 zippingLetters =
   describe "zipLetters" $ 
-    it "Zipps letters correctly" $ 
+    it "Zips letters correctly" $ 
       zipLetters " "
        [ [ ["a", "b", "c"], ["d", "e", "f"] ] 
        , [ ["g", "h", "i"], ["j", "k", "l"]
