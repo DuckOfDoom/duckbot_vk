@@ -22,7 +22,7 @@ type Word = [[Text]]
 inputParser :: Parser (Text, Text, Text)
 inputParser = do
   let emoteName = mconcat <$> sequence [string ":", T.pack <$> many1 (satisfy (inClass "a-z_")), string ":"] <?> "Input. emoteName"
-  let defaultEmptyEmote = ":white_small_square:"
+  let defaultEmptyEmote = ":e:"
   -- Parse any text consisting of available letter and spaces until we get to " :" (start of the emote)
   text <- manyTill (satisfy (inClass (availableLetters ++ map C.toUpper availableLetters)) <|> space) (lookAhead $ string " :")
   -- Skip space and parse an emote name

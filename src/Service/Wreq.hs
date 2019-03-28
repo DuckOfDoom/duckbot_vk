@@ -16,20 +16,31 @@ import Network.Wreq.Types   (Postable)
 import Control.Monad.Trans.Maybe (MaybeT, runMaybeT)
 
 import qualified Data.Text    as T (unpack)
-import qualified Network.Wreq as Wreq (Response, getWith, postWith)
+import qualified Network.Wreq as Wreq (Response, getWith, postWith, partText)
 import qualified Service.Logging as Log (error)
 import qualified NeatInterpolation as F 
 
 class (MonadIO m, MonadReader Env m) => MonadWreq m
 instance MonadWreq Bot where
 
-getWith :: (MonadWreq m) => Text -> Options -> m (Maybe LBS.ByteString)
+-- Sends a GET request. 
+getWith :: (MonadWreq m)
+  => Text -- URL
+  -> Options -- Wreq.Options
+  -> m (Maybe LBS.ByteString) -- Response
 getWith url opts = 
   runMaybeT $ handleException ("GET " <> url) (Wreq.getWith opts (T.unpack url))
 
-postWith :: (MonadWreq m, Postable a) => Text -> Options -> a -> m (Maybe LBS.ByteString)
-postWith url opts postable = 
- runMaybeT $ handleException ("POST " <> url) (Wreq.postWith opts (T.unpack url) postable)
+-- Sends a POST request. 
+-- From Wreq docs:
+-- Part and [Part] give a request body with a Content-Type of multipart/form-data. 
+postWith :: (MonadWreq m) 
+  => Text -- URL
+  -> Options -- Wreq.Options
+  -> [(Text, Text)] -- A list of data to send in form 
+  -> m (Maybe LBS.ByteString) -- Response
+postWith url opts args = 
+ runMaybeT $ handleException ("POST " <> url) (Wreq.postWith opts (T.unpack url) (map (\(x, y) -> Wreq.partText x y) args))
 
 handleException :: (MonadWreq m)
  => Text

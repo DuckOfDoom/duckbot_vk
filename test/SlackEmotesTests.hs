@@ -26,7 +26,7 @@ inputParsing =
           parse (input <> " :monkas: :hey_yo:") `isParsedTo` (T.toLower input, ":monkas:", ":hey_yo:")
         -- should treat any case as lower (we have only one alphabet anyways)
           parse (T.toUpper input <> " :monkas: :hey_yo:") `isParsedTo` (T.toLower input, ":monkas:", ":hey_yo:")
-          parse "a :monkas:" `isParsedTo` ("a", ":monkas:", ":white_small_square:")
+          parse "a :monkas:" `isParsedTo` ("a", ":monkas:", ":e:")
       it "Does not parse input with special symbols" $ 
         fails $ parse "#123 :text: :text2:" 
       it "Does not parse incorrect input" $ do

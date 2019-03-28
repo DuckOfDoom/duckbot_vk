@@ -22,7 +22,7 @@ import Network.Wreq (param)
 import qualified Service.Logging     as Log (error)
 import qualified Service.UrlComposer as Url (messagesGetLongPollServer,
                                              messagesSend, mkLongPollServerUrl)
-import qualified Service.Wreq        as Wreq (Options, defaults, getWith)
+import qualified Service.Wreq        as Wreq (Options, defaults, getWith, postWith)
 
 import qualified Data.ByteString.Lazy as LBS
 import qualified Data.Text.Encoding   as TE
@@ -68,9 +68,11 @@ longPoll settings = do
         response <- maybe (pure Nothing) (parse url) json
         pure $ Right response
 
+-- Sends message 
 sendMessage :: Integer -> Text -> Bot ()
 sendMessage userId msg = defaultOpts >>= sendMessageInternal userId msg
 
+-- Sends message with attached keyboard
 sendMessageWithKeyboard :: Integer -> Text -> Keyboard -> Bot ()
 sendMessageWithKeyboard userId msg keyboard = optsWithKeyboard >>= sendMessageInternal userId msg
     where
@@ -79,10 +81,11 @@ sendMessageWithKeyboard userId msg keyboard = optsWithKeyboard >>= sendMessageIn
 sendMessageInternal :: Integer -> Text -> Wreq.Options -> Bot ()
 sendMessageInternal userId msg opts = do
   let url = Url.messagesSend
-  result <- Wreq.getWith url $ opts
-      & param "user_id" .~ [showT userId]
-      & param "peer_id" .~ [showT userId]
-      & param "message" .~ [truncateMessageIfNeeded msg]
+  result <- Wreq.postWith url opts 
+    [ ("user_id", (showT userId))
+    , ("peer_id", (showT userId))
+    , ("message", msg)
+    ]
   messageId <- maybe (pure Nothing) (parse url) result :: Bot (Maybe MessageId)
   case messageId of
     Just mId -> updateState mId
@@ -92,15 +95,6 @@ sendMessageInternal userId msg opts = do
     updateState messageId = do
       _ <- updateStateForUser userId (\st -> st & lastSentMessageId .~ getId messageId)
       pure ()
-
-    messageLengthLimit = 3912 -- Found experimentally
-    truncateMessageIfNeeded :: Text -> Text
-    truncateMessageIfNeeded m 
-      | T.length m <= messageLengthLimit = m
-      | otherwise = 
-        let message = "Макс. размер соообщения - " <> showT messageLengthLimit <> " символов. Сообщение будет обрезано.\n"
-        in
-          message <> (T.take (messageLengthLimit - T.length message) m)
 
 -- Parses with outputting protocol errors or parsing errors to log
 parse :: FromJSON a => Text -> LBS.ByteString -> Bot (Maybe a)
