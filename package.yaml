@@ -51,6 +51,7 @@ default-extensions:
 - PartialTypeSignatures
 - RecordWildCards
 - QuasiQuotes
+- MultiWayIf
 
 library:
   source-dirs: src

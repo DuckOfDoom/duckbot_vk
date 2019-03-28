@@ -25,8 +25,12 @@ import qualified Service.UrlComposer as Url (messagesGetLongPollServer,
 import qualified Service.Wreq        as Wreq (Options, defaults, getWith, postWith)
 
 import qualified Data.ByteString.Lazy as LBS
+import qualified Data.Text as T
 import qualified Data.Text.Encoding   as TE
 import qualified NeatInterpolation as F
+
+maxMessageLength :: Int
+maxMessageLength = 4096
 
 defaultOpts :: Bot Wreq.Options
 defaultOpts = do
@@ -83,7 +87,7 @@ sendMessageInternal userId msg opts = do
   result <- Wreq.postWith url opts 
     [ ("user_id", (showT userId))
     , ("peer_id", (showT userId))
-    , ("message", msg)
+    , ("message", truncateIfNeeded msg)
     ]
   messageId <- maybe (pure Nothing) (parse url) result :: Bot (Maybe MessageId)
   case messageId of
@@ -94,6 +98,13 @@ sendMessageInternal userId msg opts = do
     updateState messageId = do
       _ <- updateStateForUser userId (\st -> st & lastSentMessageId .~ getId messageId)
       pure ()
+
+    truncateIfNeeded :: Text -> Text
+    truncateIfNeeded m = 
+      if | T.length m <= maxMessageLength -> m
+         | otherwise -> 
+            let truncatedMsg = "<..сообщение обрезано..>" 
+            in T.take (maxMessageLength - T.length truncatedMsg) m <> truncatedMsg
 
 -- Parses with outputting protocol errors or parsing errors to log
 parse :: FromJSON a => Text -> LBS.ByteString -> Bot (Maybe a)
@@ -108,7 +119,7 @@ parseSilent bs = pure $ rightToMaybe (eitherParse bs)
 eitherParse :: FromJSON a => LBS.ByteString -> Either Error a
 eitherParse bs =
   case decode bs :: Maybe Error of
-    Just err  -> Left err
+    Just err -> Left err
     Nothing ->
       case decode bs of
         Just r  -> Right r
