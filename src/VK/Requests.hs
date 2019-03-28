@@ -26,7 +26,6 @@ import qualified Service.Wreq        as Wreq (Options, defaults, getWith, postWi
 
 import qualified Data.ByteString.Lazy as LBS
 import qualified Data.Text.Encoding   as TE
-import qualified Data.Text as T
 import qualified NeatInterpolation as F
 
 defaultOpts :: Bot Wreq.Options
@@ -99,8 +98,8 @@ sendMessageInternal userId msg opts = do
 -- Parses with outputting protocol errors or parsing errors to log
 parse :: FromJSON a => Text -> LBS.ByteString -> Bot (Maybe a)
 parse methodName bs = case eitherParse bs of
-    Left e       -> logError e methodName >> pure Nothing
-    Right result -> pure $ Just result
+  Left e       -> logError e methodName >> pure Nothing
+  Right result -> pure $ Just result
 
 -- Parses without outputting anything
 parseSilent :: FromJSON a => LBS.ByteString -> Bot (Maybe a)
@@ -108,14 +107,14 @@ parseSilent bs = pure $ rightToMaybe (eitherParse bs)
 
 eitherParse :: FromJSON a => LBS.ByteString -> Either Error a
 eitherParse bs =
-    case decode bs :: Maybe Error of
-      Just err  -> Left err
-      Nothing ->
-        case decode bs of
-          Just r  -> Right r
-          Nothing -> Left parsingError
-    where
-      parsingError = ParsingError "Failed to parse JSON" (TE.decodeUtf8 $ LBS.toStrict bs)
+  case decode bs :: Maybe Error of
+    Just err  -> Left err
+    Nothing ->
+      case decode bs of
+        Just r  -> Right r
+        Nothing -> Left parsingError
+  where
+    parsingError = ParsingError "Failed to parse JSON" (TE.decodeUtf8 $ LBS.toStrict bs)
 
 logError :: Error -> Text -> Bot ()
 logError ParsingError{..} methodName =

@@ -12,7 +12,6 @@ import BotPrelude
 import Control.Exception    (SomeException, try)
 import Data.ByteString.Lazy as LBS (ByteString)
 import Network.Wreq         (Options, defaults, param, responseBody)
-import Network.Wreq.Types   (Postable)
 import Control.Monad.Trans.Maybe (MaybeT, runMaybeT)
 
 import qualified Data.Text    as T (unpack)
@@ -29,7 +28,11 @@ getWith :: (MonadWreq m)
   -> Options -- Wreq.Options
   -> m (Maybe LBS.ByteString) -- Response
 getWith url opts = 
-  runMaybeT $ handleException ("GET " <> url) (Wreq.getWith opts (T.unpack url))
+  runMaybeT $ handleException 
+    ("GET " <> url)
+    (Wreq.getWith 
+      opts (T.unpack url)
+    )
 
 -- Sends a POST request. 
 -- From Wreq docs:
@@ -40,7 +43,13 @@ postWith :: (MonadWreq m)
   -> [(Text, Text)] -- A list of data to send in form 
   -> m (Maybe LBS.ByteString) -- Response
 postWith url opts args = 
- runMaybeT $ handleException ("POST " <> url) (Wreq.postWith opts (T.unpack url) (map (\(x, y) -> Wreq.partText x y) args))
+ runMaybeT $ handleException
+  ("POST " <> url)
+  (Wreq.postWith 
+    opts
+    (T.unpack url)
+    (map (\(x, y) -> Wreq.partText x y) args)
+  )
 
 handleException :: (MonadWreq m)
  => Text
